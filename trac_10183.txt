@@ -1,0 +1,41 @@
+combinat/sf/sfa.py:            sage: a.itensor(a) #long
+graphs/graph_generators.py:            sage: G.show() # long
+graphs/graph.py:            sage: K5_minor =
+graphs/graph.py:            sage: K33_minor =
+g.minor(graphs.CompleteBipartiteGraph(3,3))        # long
+lfunctions/sympow.py:            sage: sympow.analytic_rank(EllipticCurve([0, 0, 1, -79, 342]))  # long
+lfunctions/sympow.py:            sage:
+sympow.analytic_rank(EllipticCurve([1, 1, 0, -2582, 48720]))  # long
+lfunctions/sympow.py:            sage:
+sympow.analytic_rank(EllipticCurve([0, 0, 0, -10012, 346900]))  # long
+lfunctions/lcalc.py:            sage: lcalc.zeros(4)
+       # long
+lfunctions/lcalc.py:            sage: lcalc.zeros(5, L='--tau')
+       # long
+lfunctions/lcalc.py:            sage: lcalc.zeros(3,
+EllipticCurve('37a'))     # long
+modules/fg_pid/fgp_module.py:        sage: set_random_seed(s); v =
+[fgp.test_morphism_0(4) for _ in range(50)]    # long
+plot/plot.py:            sage: sum([plot(z*sin(x), 0, 10).plot3d(z)
+for z in range(6)]) #long
+plot/plot.py:            sage: p.show(gridlines=( [-3,-2.75,..,3],
+xrange(-1,5,2) )) #long
+rings/qqbar.py:            sage: a.exactify(); a #long
+schemes/elliptic_curves/heegner.py:        sage:
+kolyvagin_reduction_data(E,3)              # long
+schemes/elliptic_curves/ell_rational_field.py:            sage: E =
+EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long (0.6
+seconds)
+schemes/elliptic_curves/ell_rational_field.py:            sage:
+EllipticCurve('681b').three_selmer_rank(algorithm='Heuristic')   #
+long (10 seconds); optional - magma
+schemes/elliptic_curves/lseries_ell.py:            sage:
+E.lseries().zeros_in_interval(6, 10, 0.1)      # long
+schemes/elliptic_curves/lseries_ell.py:            sage:
+E.lseries().twist_zeros(3, -4, -3)         # long
+schemes/generic/fano_toric_variety.py:    sage: p4318 =
+ReflexivePolytope(3, 4318)  # long
+schemes/generic/fano_toric_variety.py:    sage: FTV =
+CPRFanoToricVariety(Delta_polar=p4318)  # long
+schemes/generic/fano_toric_variety.py:    sage:
+FTV.anticanonical_hypersurface()  # long

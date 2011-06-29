@@ -1,0 +1,21 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1289168368 21600
+# Node ID 5120c5b10f4d8c4ca8f3265b460695322e692cfb
+# Parent  b6599dd49f00eda550ca1852687e131ba5507dbe
+Trac 10183: added "# long time" tags to lines 1446-1447 so the whole 3 command block is tagged as such
+
+diff -r b6599dd49f00 -r 5120c5b10f4d sage/schemes/elliptic_curves/ell_rational_field.py
+--- a/sage/schemes/elliptic_curves/ell_rational_field.py	Sat Nov 06 17:20:57 2010 -0700
++++ b/sage/schemes/elliptic_curves/ell_rational_field.py	Sun Nov 07 16:19:28 2010 -0600
+@@ -1443,8 +1443,8 @@
+         ::
+         
+             sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long time (0.6 seconds)
+-            sage: set_random_seed(0)
+-            sage: E.simon_two_descent ()
++            sage: set_random_seed(0)        # long time
++            sage: E.simon_two_descent ()    # long time
+             (1, 1, [])            
+         
+         The rest of these entries were taken from Tom Womack's page

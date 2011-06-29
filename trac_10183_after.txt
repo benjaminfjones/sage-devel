@@ -1,0 +1,161 @@
+sage -t  "devel/sage/sage/combinat/sf/sfa.py"               
+	 [4.7 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 4.8 seconds
+sage -t --long "devel/sage/sage/combinat/sf/sfa.py"         
+	 [7.0 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 7.0 seconds
+sage -t  "devel/sage/sage/graphs/graph.py"                  
+	 [11.4 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 11.4 seconds
+sage -t --long "devel/sage/sage/graphs/graph.py"            
+	 [12.4 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 12.4 seconds
+sage -t  "devel/sage/sage/graphs/graph_generators.py"       
+	 [33.4 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 33.4 seconds
+sage -t --long "devel/sage/sage/graphs/graph_generators.py" 
+	 [89.0 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 89.1 seconds
+sage -t  "devel/sage/sage/lfunctions/lcalc.py"              
+	 [1.9 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 1.9 seconds
+sage -t --long "devel/sage/sage/lfunctions/lcalc.py"        
+	 [2.0 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 2.0 seconds
+sage -t  "devel/sage/sage/lfunctions/sympow.py"             
+	 [2.6 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 2.6 seconds
+sage -t --long "devel/sage/sage/lfunctions/sympow.py"       
+	 [5.6 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 5.6 seconds
+sage -t  "devel/sage/sage/modules/fg_pid/fgp_module.py"     
+	 [6.9 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 7.0 seconds
+sage -t --long "devel/sage/sage/modules/fg_pid/fgp_module.py"
+	 [9.6 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 9.6 seconds
+sage -t  "devel/sage/sage/plot/plot.py"                     
+	 [49.1 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 49.1 seconds
+sage -t --long "devel/sage/sage/plot/plot.py"               
+	 [61.7 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 61.7 seconds
+sage -t  "devel/sage/sage/rings/qqbar.py"                   
+	 [9.7 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 9.7 seconds
+sage -t --long "devel/sage/sage/rings/qqbar.py"             
+	 [24.8 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 24.8 seconds
+sage -t  "devel/sage/sage/schemes/elliptic_curves/ell_rational_field.py"
+  ***   Warning: new stack size = 1003360 (0.957 Mbytes).
+  ***   Warning: new stack size = 1003360 (0.957 Mbytes).
+**********************************************************************
+File "/Users/jonesbe/sage/sage-4.6/devel/sage/sage/schemes/elliptic_curves/ell_rational_field.py", line 1447:
+    sage: E.simon_two_descent ()
+Expected:
+    (1, 1, [])
+Got:
+    (3, 3, [(1 : 0 : 1), (0 : 2 : 1), (2 : -1 : 1)])
+**********************************************************************
+1 items had failures:
+   1 of  31 in __main__.example_28
+***Test Failed*** 1 failures.
+For whitespace errors, see the file /Users/jonesbe/.sage//tmp/.doctest_ell_rational_field.py
+	 [39.3 s]
+ 
+----------------------------------------------------------------------
+The following tests failed:
+
+
+	sage -t  "devel/sage/sage/schemes/elliptic_curves/ell_rational_field.py"
+Total time for all tests: 39.3 seconds
+sage -t --long "devel/sage/sage/schemes/elliptic_curves/ell_rational_field.py"
+	 [157.9 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 158.0 seconds
+sage -t  "devel/sage/sage/schemes/elliptic_curves/heegner.py"
+	 [52.1 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 52.1 seconds
+sage -t --long "devel/sage/sage/schemes/elliptic_curves/heegner.py"
+	 [72.4 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 72.4 seconds
+sage -t  "devel/sage/sage/schemes/elliptic_curves/lseries_ell.py"
+	 [9.1 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 9.1 seconds
+sage -t --long "devel/sage/sage/schemes/elliptic_curves/lseries_ell.py"
+	 [9.6 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 9.6 seconds
+sage -t  "devel/sage/sage/schemes/generic/fano_toric_variety.py"
+	 [9.9 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 9.9 seconds
+sage -t --long "devel/sage/sage/schemes/generic/fano_toric_variety.py"
+	 [12.1 s]
+ 
+----------------------------------------------------------------------
+All tests passed!
+Total time for all tests: 12.1 seconds

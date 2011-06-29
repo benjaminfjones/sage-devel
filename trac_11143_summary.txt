@@ -1,0 +1,124 @@
+== Special functions defined in Maxima ==
+(http://maxima.sourceforge.net/docs/manual/en/maxima_16.html#SEC56)
+
+{{{
+bessel_j (index, expr)         Bessel function, 1st kind
+bessel_y (index, expr)         Bessel function, 2nd kind
+bessel_i (index, expr)         Modified Bessel function, 1st kind
+bessel_k (index, expr)         Modified Bessel function, 2nd kind
+}}}
+
+* Notes: bessel_I, bessel_J, etc. are functions in Sage for numerical evaluation. There is also the `Bessel` class, but no conversions from Maxima's bessel_i etc. to Sage.
+
+{{{
+hankel_1 (v,z)                 Hankel function of the 1st kind
+hankel_2 (v,z)                 Hankel function of the 2nd kind
+struve_h (v,z)                 Struve H function
+struve_l (v,z)                 Struve L function
+}}}
+
+* Notes: None of these functions are currently exposed at the top level in Sage. Evaluation is possible using mpmath.
+{{{
+assoc_legendre_p[v,u] (z)      Legendre function of degree v and order u 
+assoc_legendre_q[v,u] (z)      Legendre function, 2nd kind
+}}}
+
+* Notes: In Sage we have `legendre_P(n, x)` and `legendre_Q(n, x)` both
+described as Legendre functions. It's not clear to me how there are related to
+Maxima's versions since the number of arguments differs.
+
+{{{
+%f[p,q] ([], [], expr)         Generalized Hypergeometric function
+hypergeometric(l1, l2, z)      Hypergeometric function
+slommel
+%m[u,k] (z)                    Whittaker function, 1st kind
+%w[u,k] (z)                    Whittaker function, 2nd kind
+}}}
+
+* Notes: `hypergeometric(l1, l2, z)` needs a conversion to Sage's 
+`hypergeometric_U`. The others can be evaluated using mpmath. 
+`slommel` is presumably mpmath's `lommels1()` or `lommels2()` (or both?). This
+isn't well documented in Maxima.
+
+{{{
+expintegral_e (v,z)            Exponential integral E
+expintegral_e1 (z)             Exponential integral E1
+expintegral_ei (z)             Exponential integral Ei
+expintegral_li (z)             Logarithmic integral Li
+expintegral_si (z)             Exponential integral Si
+expintegral_ci (z)             Exponential integral Ci
+expintegral_shi (z)            Exponential integral Shi
+expintegral_chi (z)            Exponential integral Chi
+erfc (z)                       Complement of the erf function
+}}}
+
+* Notes: The exponential integral functions `expintegral_e1` and 
+`expintegral_ei (z)` are called `exponential_integral_1` and `Ei` resp. in 
+Sage. They both need conversions. The rest need `BuiltinFunction` classes 
+defined for them with evaluation handled by mpmath and the symbol table 
+conversion added. Also, `erfc` is called `error_fcn`, so also needs a 
+conversion.
+
+{{{
+kelliptic (z)                  Complete elliptic integral of the first 
+                               kind (K)
+parabolic_cylinder_d (v,z)     Parabolic cylinder D function
+}}}
+
+* Notes: `kelliptic(z)` needs a conversion to `elliptic_kc` in Sage and 
+`parabolic_cylinder_d (v,z)` does not seem to be exposed at top level. 
+It can be evaluated by mpmath.
+
+= Current symbol conversion table =
+From as of Sage-4.7)
+
+Maxima ---> Sage
+
+%gamma ---> euler_gamma
+%pi ---> pi
+(1+sqrt(5))/2 ---> golden_ratio
+acos ---> arccos
+acosh ---> arccosh
+acot ---> arccot
+acoth ---> arccoth
+acsc ---> arccsc
+acsch ---> arccsch
+asec ---> arcsec
+asech ---> arcsech
+asin ---> arcsin
+asinh ---> arcsinh
+atan ---> arctan
+atan2 ---> arctan2
+atanh ---> arctanh
+binomial ---> binomial
+brun ---> brun
+catalan ---> catalan
+ceiling ---> ceil
+cos ---> cos
+delta ---> dirac_delta
+elliptic_e ---> elliptic_e
+elliptic_ec ---> elliptic_ec
+elliptic_eu ---> elliptic_eu
+elliptic_f ---> elliptic_f
+elliptic_kc ---> elliptic_kc
+elliptic_pi ---> elliptic_pi
+exp ---> exp
+expintegral_e ---> En
+factorial ---> factorial
+gamma_incomplete ---> gamma
+glaisher ---> glaisher
+imagpart ---> imag_part
+inf ---> +Infinity
+infinity ---> Infinity
+khinchin ---> khinchin
+kron_delta ---> kronecker_delta
+li[2] ---> dilog
+log ---> log
+log(2) ---> log2
+mertens ---> mertens
+minf ---> -Infinity
+psi[0] ---> psi
+realpart ---> real_part
+signum ---> sgn
+sin ---> sin
+twinprime ---> twinprime

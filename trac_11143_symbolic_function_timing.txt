@@ -1,0 +1,131 @@
+The tests similar to `if z == 0` in `_eval_` do make a big difference. I guess 
+this is well known, but I didn't realize how big the speed difference is. 
+
+I made a little table below of some timings. In the first table , `_eval_` 
+includes tests `if z == 0 and n > 1` and `if n == 0`. In the second table, 
+there are no such if statements (so the special cases are not implemented). In 
+the third table, the special cases are implementes as in 
+`sage/functions/generalized.py` where an approximation of `z` (or `n`) is 
+produced and checked instead of the symbol.
+
+{{{
+#!rst
+with ``if z == 0``
+
+=============================================	========
+  Test											 Time
+=============================================	========
+sage: timeit("f = exp_integral_e(n,z)")			 1.44 ms
+sage: timeit("f = exp_integral_e(n,0)")			 929 µs
+sage: timeit("f = exp_integral_e(0,z)")			 1.41 ms
+sage: timeit("f = exp_integral_e(1.0,1.0)")		 158 µs
+=============================================	========
+
+without ``if z == 0``
+
+=============================================	======
+  Test											 Time
+=============================================	======
+sage: timeit("f = exp_integral_e(n,z)")			541 µs
+sage: timeit("f = exp_integral_e(n,0)")			300 µs
+sage: timeit("f = exp_integral_e(0,z)")			299 µs
+sage: timeit("f = exp_integral_e(1.0,1.0)")		161 µs
+=============================================	======
+
+with:
+
+.. code-block:: python
+
+	try:
+	    approx_z = ComplexIntervalField()(z)
+	    # if z is zero and n > 1
+	    if bool(approx_z.imag() == 0) and bool(approx_z.real() == 0):
+	        if n > 1:
+	            return 1/(n-1)
+	except: # z is symbolic
+	    pass
+	# if n is zero
+	try:
+	    approx_n = ComplexIntervalField()(n)
+	    if bool(approx_n.imag() == 0) and bool(approx_n.real() == 0):
+	        return exp(-z)/z
+	except: # n is symbolic
+	    pass
+
+=============================================	======
+  Test											 Time
+=============================================	======
+sage: timeit("f = exp_integral_e(n,z)")			570 µs
+sage: timeit("f = exp_integral_e(n,0)")			576 µs
+sage: timeit("f = exp_integral_e(0,z)")			1.05 ms
+sage: timeit("f = exp_integral_e(1.0,1.0)")		160 µs
+=============================================	======
+}}}
+
+Timings in tables 2 and 3 are close except in the case where ``exp(-z)/z`` is
+returned, whereas table 1 is anywhere from a factor of 3 to 5 slower than in 
+table 2 when a symbolic argument is passed. Anyway, I thought I'd include the 
+above for other beginners such as myself.
+
+--------------
+
+Another thing I discovered is that these two special cases that I was
+implementing are known to Maxima:
+
+{{{
+sage: f = exp_integral_e(0,x)
+sage: f
+exp_integral_e(0,x)
+sage: f.simplify()
+e^(-x)/x
+
+sage: nn = var('nn')
+sage: assume(nn > 1)
+sage: f = exp_integral_e(nn, 0)
+sage: f
+exp_integral_e(nn, 0)
+sage: f.simplify()
+1/(nn - 1)
+}}}
+	
+So I think in the interest of speedy evaluation it's best to leave the special
+cases out, but point out in the documentation that Maxima knows about them.
+
+I've uploaded a new patch. I'll start implementing the other exponential 
+integrals using this as a template.
+
+-------------- 6-20-2011
+The patch now depends on #11513
+
+Here are new timings for the ``_eval_`` method with ``_is_numerically_zero()``:
+
+{{{
+#!rst
+.. code-block:: python
+
+    # special case: *quickly* test if (z == 0 and n > 1)
+    if isinstance(z, Expression):
+        if z._is_numerically_zero():
+            z_zero = True # for later
+            if n > 1:
+                return 1/(n-1)
+        else:
+            if not z: 
+                z_zero = True
+                if n > 1:
+                    return 1/(n-1)
+
+======================================================  =======
+  Test                                                   Time
+======================================================  =======
+sage: timeit("f = exp_integral_e(n,z)")                 535 µs
+sage: timeit("f = exp_integral_e(n,0)")                 482 µs
+sage: assume(n > 1); timeit("f = exp_integral_e(n,0)")  3.56 ms
+sage: timeit("f = exp_integral_e(0,z)")                 968 µs
+sage: timeit("f = exp_integral_e(1.0,1.0)")             160 µs
+======================================================  =======
+}}}
+
+I realized that in row 2 of the previous timings I neglected to assume n > 1 so those timings aren't giving much information since the expression is left unevaluated like in row 1. The new row 3 includes that assumption so that the simplified result ``1/(n-1)`` is created and returned. 
+
+I'll update the timings above and move these tables to the wiki.

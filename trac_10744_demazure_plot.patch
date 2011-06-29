@@ -1,0 +1,317 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1296864474 21600
+# Node ID 7d4a9e5cb027128caa468a666870fa3c64dbbc69
+# Parent  e369cc8bfa30fbab80056966a4d484c1eb2766f6
+Trac 10744: Add demazure_character, plot to WeightRingElement
+
+diff -r e369cc8bfa30 -r 7d4a9e5cb027 sage/combinat/root_system/weyl_characters.py
+--- a/sage/combinat/root_system/weyl_characters.py	Sun Nov 21 12:50:12 2010 +0100
++++ b/sage/combinat/root_system/weyl_characters.py	Fri Feb 04 18:07:54 2011 -0600
+@@ -3,6 +3,7 @@
+ """
+ #*****************************************************************************
+ #       Copyright (C) 2008 Daniel Bump <bump at match.stanford.edu>
++#       Copyright (C) 2011 Benjamin Jones <benjaminfjones@gmail.com>
+ #
+ #  Distributed under the terms of the GNU General Public License (GPL)
+ #
+@@ -25,6 +26,7 @@
+ from sage.structure.element import is_Element
+ from sage.matrix.constructor import matrix
+ from sage.rings.all import ZZ, QQ
++from sage.plot.plot import plot, point
+ from sage.misc.misc import repr_lincomb
+ from sage.misc.functional import is_odd, is_even
+ from sage.misc.flatten import flatten
+@@ -2410,6 +2412,24 @@
+             [[(1, -2, 1), 1],  [(1, -1, 0), 1],  [(1, 1, -2), 1],  [(1, 0, -1), 1],  [(2, -1, -1), 1],  [(0, 1, -1), 1]]
+         """
+         return [[k,m] for k,m in self._mdict.iteritems()]
++        
++    def degree(self):
++        """
++        Returns the degree of the character, i.e. the dimension of the 
++        corresponding module.
++        
++        EXAMPLES::
++            
++            sage: b2 = WeightRing(WeylCharacterRing(['B',2]))
++            sage: ch = 3*b2((3,1)) + 2*b2((2,1)) + b2((1,1))
++            sage: ch.degree()
++            6
++            
++            sage: ch3=ch^3
++            sage: ch3.degree()
++            216
++        """
++        return sum(self._mdict.values())
+ 
+     def weyl_group_action(self, w):
+         """
+@@ -2446,6 +2466,265 @@
+         """
+         return WeylCharacter(self._parent._parent, self._parent._parent.char_from_weights(self._mdict), self._mdict)
+ 
++    def _demazure(self, i, antidominant=False):
++        """
++        INPUT:
++
++        - ``i`` - the index of a simple root
++
++        Returns the weight ring element obtained by applying the i-th Demazure
++        operator to self. 
++
++        """
++        ac = self._parent.space().simple_coroots()[i]
++        a = self._parent.space().simple_roots()[i]
++        if antidominant:
++            ac = -ac
++            a = -a
++        ret = self._parent(0)
++        d = self._mdict
++        for t in d.keys():
++            k = t.inner_product(ac)
++            if k >= 0:
++                ret += d[t]*sum(self._parent(t-j*a) for j in range(k+1))
++            else:
++                ret += -d[t]*sum(self._parent(t+j*a) for j in range(1,-k))
++        return ret
++
++    def demazure_character(self, w, antidominant=False):
++        """
++        INPUT:
++
++        - ``w`` - a WeylGroup element
++
++        OPTIONAL:
++
++        - ``antidominant`` (default False)
++
++        Returns the weight ring element obtained by applying the Demazure
++        operator `\partial_w` to self. This means that we factor w into
++        a product of simple reflection `s_{i_1}\cdots s_{i_k}` and then
++        apply `\partial_{i_1}\cdots\partial_{i_k}` to self, where 
++
++        .. math::
++
++                    \\partial_i f = \\frac{\\alpha_i f-s_i(f)}{\\alpha_i - 1}
++
++        Applied to a dominant weight, if w is the long Weyl group element,
++        this produces the Weyl character with the given highest weight vector.
++        
++        If the optional ``antidominant`` is set true, the definition is
++        modfied, and instead
++    
++        .. math::
++
++                    \\partial_i f = \\frac{f-\\alpha_i\\cdot s_i(f)}{1-\\alpha_i}
++
++        EXAMPLES:
++        
++        Compute the character of some Demazure modules in type A3::
++        
++            sage: A = WeylCharacterRing(['A',3])
++            sage: a = WeightRing(A)
++            sage: space = a.space()
++            sage: lam = space.fundamental_weights()
++            sage: W = space.weyl_group()
++            sage: (s1,s2,s3) = W.gens()
++            sage: ch = a(3*lam[1]) + a(4*lam[2]); ch
++            a3(3,0,0,0) + a3(4,4,0,0)
++
++            sage: ch.demazure_character(s1)
++            a3(0,3,0,0) + a3(1,2,0,0) + a3(2,1,0,0) + a3(3,0,0,0) + a3(4,4,0,0)
++            
++            sage: ch.demazure_character(s1*s2)
++            a3(0,3,0,0) + a3(0,4,4,0) + a3(1,2,0,0) + a3(1,3,4,0) + a3(1,4,3,0) + a3(2,1,0,0) + a3(2,2,4,0) + a3(2,3,3,0) + a3(2,4,2,0) + a3(3,0,0,0) + a3(3,1,4,0) + a3(3,2,3,0) + a3(3,3,2,0) + a3(3,4,1,0) + a3(4,0,4,0) + a3(4,1,3,0) + a3(4,2,2,0) + a3(4,3,1,0) + a3(4,4,0,0)
++            
++            sage: ch.demazure_character(s1*s2*s1)
++            a3(0,0,3,0) + a3(0,1,2,0) + a3(0,2,1,0) + a3(0,3,0,0) + a3(0,4,4,0) + a3(1,0,2,0) + a3(1,1,1,0) + a3(1,2,0,0) + a3(1,3,4,0) + a3(1,4,3,0) + a3(2,0,1,0) + a3(2,1,0,0) + a3(2,2,4,0) + a3(2,3,3,0) + a3(2,4,2,0) + a3(3,0,0,0) + a3(3,1,4,0) + a3(3,2,3,0) + a3(3,3,2,0) + a3(3,4,1,0) + a3(4,0,4,0) + a3(4,1,3,0) + a3(4,2,2,0) + a3(4,3,1,0) + a3(4,4,0,0)
++            sage: ch.demazure_character(s1*s2*s1).degree()
++            25
++            
++            sage: ch.demazure_character(s1*s2*s3)
++            a3(0,3,0,0) + a3(0,4,4,0) + a3(1,2,0,0) + a3(1,3,4,0) + a3(1,4,3,0) + a3(2,1,0,0) + a3(2,2,4,0) + a3(2,3,3,0) + a3(2,4,2,0) + a3(3,0,0,0) + a3(3,1,4,0) + a3(3,2,3,0) + a3(3,3,2,0) + a3(3,4,1,0) + a3(4,0,4,0) + a3(4,1,3,0) + a3(4,2,2,0) + a3(4,3,1,0) + a3(4,4,0,0)
++            sage: ch.demazure_character(s1*s2*s3).degree()
++            19
++        
++        Compare the Demazure character formula and the Weyl character formula in A2::
++        
++            sage: A = WeylCharacterRing(['A',2])
++            sage: a = WeightRing(A)
++            sage: space = a.space()
++            sage: W = space.weyl_group()
++            sage: w0 = W.long_element()
++            sage: lam = space.fundamental_weights()
++            sage: rho = sum(list(lam))
++            sage: wch = A(2*rho) # character of the irred. representation
++            sage: ch = a(2*rho)  # element in the weight ring
++            sage: dch = ch.demazure_character(w0) # apply the Demazure operators
++            sage: dch.degree()
++            27
++            sage: sorted(wch.mlist()) == sorted(dch.mlist())
++            True
++        
++        Check the Demazure character formula and the Weyl character formula in B2::
++        
++            sage: B = WeylCharacterRing(['B',2])
++            sage: b = WeightRing(B)
++            sage: space = b.space()
++            sage: W = space.weyl_group()
++            sage: w0 = W.long_element()
++            sage: lam = space.fundamental_weights()
++            sage: rho = sum(list(lam))
++            sage: wch = B(2*rho) # character of the irred. representation
++            sage: ch = b(2*rho)  # element in the weight ring
++            sage: dch = ch.demazure_character(w0) # apply the Demazure operators
++            sage: dch.degree()
++            81
++            sage: sorted(wch.mlist()) == sorted(dch.mlist())
++            True
++
++        """
++        W = self._parent.space().weyl_group()
++        ret = self
++        for i in reversed(w.reduced_word()):
++            ret = ret._demazure(i, antidominant)
++        return ret
++
++    def plot(self, plot_roots=True, arrow_style=None, point_style=None,
++             mult_scale=None):
++        """
++        Returns a 2d plot of the character if the cartan type is irreducible and 
++        rank 2. This includes Cartan types A2, B2, C2, and G2.
++        
++        OPTIONAL:
++        
++        - ``plot_roots`` - A plot of the root system is returned by default. If
++          plot_roots = False then only the weights are plotted.
++        
++        - ``arrow_style`` - a dictionary of style options for plotting the roots
++          as arrows. See arrow2d.options. The default is::
++        
++            arrow_style = {'rgbcolor':(0,0,1),'width':1,'linestyle':'dotted'}
++        
++        - ``point_style`` - a dictionary of style options for plotting the weights
++          as points. See point2d.options. The default is::
++        
++            point_style={'rgbcolor':(1,0,0)}
++        
++        - ``mult_scale`` - If specified, this is a function of one integer input
++          ``m`` which returns the desired size of the points in the plane 
++          representing a given weight multiplicity ``m``. The default is ::
++        
++            mult_scale = lambda m: 8*(m+1)**2
++        
++        EXAMPLES:
++        
++        Plot the character of a 17 dimensional, reducible module in type B2 having
++        highest weights the two fundamental weights::
++        
++            sage: B2 = WeylCharacterRing(['B',2])
++            sage: b2 = WeightRing(B2)
++            sage: L = b2.space()
++            sage: [fw1, fw2] = L.fundamental_weights()
++            sage: M1 = B2(fw1)
++            sage: M2 = 3*B2(fw2)
++            sage: ch = WeightRingElement(b2, M1._mdict) + WeightRingElement(b2, M2._mdict)
++            sage: P = ch.plot()
++            sage: show(P, aspect_ratio=1)
++        
++        Plot a Weyl group invariant character for G2::
++        
++            sage: G2 = WeylCharacterRing(['G',2])
++            sage: g2 = WeightRing(G2)
++            sage: L = g2.space()
++            sage: [fw1, fw2] = L.fundamental_weights()
++            sage: ch = sum((2*g2(fw2) + g2(2*fw2)).weyl_group_action(w) for w in L.weyl_group()) + 6*g2((0,0))
++            sage: P = ch.plot(mult_scale = lambda m: (m+1)^2*5)
++            sage: show(P, aspect_ratio=1)
++        
++        Plot the character of a 27 dimensional irreducible module for A2::
++        
++            sage: A = WeylCharacterRing(['A',2])
++            sage: a = WeightRing(A)
++            sage: rho = sum(a.space().fundamental_weights())
++            sage: irr = A(2*rho)
++            sage: ch_irr = WeightRingElement(a, irr._mdict)
++            sage: P = ch_irr.plot()
++            sage: show(P, aspect_ratio=1)
++        
++        Plot the character of a 35 dimensional Demazure module for A2::
++        
++            sage: A = WeylCharacterRing(['A',2])
++            sage: a = WeightRing(A)
++            sage: space = a.space()
++            sage: W = space.weyl_group()
++            sage: (s1,s2) = W.gens()
++            sage: lam = space.fundamental_weights()
++            sage: ch = a(4*lam[1] + 4*lam[2])
++            sage: dch = ch.demazure_character(s1*s2)
++            sage: P = dch.plot()
++            sage: show(P, aspect_ratio=1)
++        """
++        # default plot parameters
++        if arrow_style == None:
++            arrow_style={'rgbcolor':(0,0,1),'width':1,'linestyle':'dotted'}
++        if point_style == None:
++            point_style={'rgbcolor':(1,0,0)}
++        if mult_scale == None:
++            mult_scale = lambda m: 8 * (m + 1)**2
++    
++        ct = tuple(self.cartan_type())
++        if ct[1] != 2:
++            raise NotImplementedError('Plotting is only implemented for Cartan ' +
++                                      ' types of rank 2.')
++        # Type A2
++        if ct == ('A',2):
++            A2 = WeylCharacterRing(['A', 2])
++            roots = A2.space().roots()
++            # helper function to compute coordinates
++            # u2 is approx. (1/2*sqrt(1/2)*sqrt(2/3), 1/2*sqrt(1/2)*sqrt(2/3), -sqrt(1/2)*sqrt(2/3)))
++            u1 = vector((QQ(0.5), QQ(-0.5), QQ(0)))
++            u2 = vector((QQ(0.288675134594813), QQ(0.288675134594813), QQ(-0.577350269189626)))
++            a2_coords = lambda v: vector((v*u1, v*u2))
++            # compute root and weight coordinates in the plane
++            root_coords = [ a2_coords(vector(A2.coerce_to_sl(r)))
++                          for r in roots ]
++            wt_coords = [ (tuple(a2_coords(vector(A2.coerce_to_sl(wt)))), m) 
++                          for (wt, m) in self.mlist() ]
++        # Type B2 or C2
++        elif ct == ('B',2) or ct == ('C',2):
++            B2 = WeylCharacterRing(ct)
++            roots = B2.space().roots()
++            # Note: we reflect about the line y=x here to be consistent with
++            #       the std. picture of B2 where alpha[2] points east and
++            #       alpha[1] points northwest.
++            root_coords = [ vector((r.coefficient(1), r.coefficient(0))) 
++                            for r in roots ]
++            wt_coords = [ ((wt.coefficient(1), wt.coefficient(0)), m) 
++                          for (wt, m) in self.mlist() ]
++        # Type G2
++        elif ct == ('G',2):
++            G2 = WeylCharacterRing(['G', 2])
++            roots = G2.space().roots()
++            # helper function to compute coordinates
++            u1 = vector((QQ(0), QQ(1), QQ(-1)))
++            u2 = vector((QQ(1), QQ(-0.5), QQ(-0.5)))
++            g2_coords = lambda v: vector((v*u1, v*u2))
++            root_coords = [g2_coords(vector(map(r.coefficient,range(3))))
++                           for r in roots ]
++            wt_coords = [(tuple(g2_coords(vector(map(wt.coefficient,range(3))))), m) 
++                         for (wt, m) in self.mlist() ]
++        else:
++            raise NotImplementedError('Plotting is not implemented for this Cartan type')
++
++        wt_plot = sum([point(wt, size=mult_scale(m), **point_style) 
++                       for (wt, m) in wt_coords])
++        if plot_roots:
++            root_plot = sum(plot(v,**arrow_style) for v in root_coords)
++            return wt_plot+root_plot
++        else:
++            return wt_plot
++
+ 
+ class WeightRing(Algebra):
+     def __init__(self, A, prefix=None):

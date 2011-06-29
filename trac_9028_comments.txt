@@ -1,0 +1,44 @@
+I've attached a new patch witch includes the fix plus an example to test the affected block of code. I couldn't think of a better way to access the block than to define a toy class that has its own mean() function which returns a Python long. If the mean() function from basic_stats.py has to be called, the type of 'x' at line 289 won't ever be 'int' or 'long' so the code block in question is never reached.
+
+Maybe someone can suggest a better example?
+
+Here is a before / after log to show that the fix works and that the example tests it.
+
+{{{
+
+sage: R = SillyPythonList()
+sage: list(R)
+[2L, 4L]
+sage: len(R)
+2
+sage: mean(R)
+3L
+sage: variance(R)
+1
+sage: variance(R, bias=True)
+1
+
+sage: R = [2,4]
+sage: mean(R)
+3
+sage: variance(R)
+2
+sage: variance(R,bias=True)
+1
+
+### LOG (after patch)
+sage: R=SillyPythonList()
+sage: len(R)
+2
+sage: mean(R)
+3L
+sage: variance(R)
+2
+sage: variance(R, bias=True)
+1
+sage: R = [2,4]
+sage: variance(R)
+2
+sage: variance(R, bias=True)
+1
+}}}

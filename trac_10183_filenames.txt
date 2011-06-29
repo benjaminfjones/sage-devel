@@ -1,0 +1,12 @@
+combinat/sf/sfa.py
+graphs/graph.py
+graphs/graph_generators.py
+lfunctions/lcalc.py
+lfunctions/sympow.py
+modules/fg_pid/fgp_module.py
+plot/plot.py
+rings/qqbar.py
+schemes/elliptic_curves/ell_rational_field.py
+schemes/elliptic_curves/heegner.py
+schemes/elliptic_curves/lseries_ell.py
+schemes/generic/fano_toric_variety.py

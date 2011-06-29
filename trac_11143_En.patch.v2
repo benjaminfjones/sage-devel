@@ -1,0 +1,219 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1308095108 18000
+# Node ID 73ad303a00b4da75bb7b4a3a755bb84ed3e62bd6
+# Parent  ce324e28c3334398d3552640e2cb1520d22465a3
+Trac 11143: added symbolic function `exp_integral_e`
+
+diff -r ce324e28c333 -r 73ad303a00b4 sage/functions/all.py
+--- a/sage/functions/all.py	Mon May 23 13:36:51 2011 +0000
++++ b/sage/functions/all.py	Tue Jun 14 18:45:08 2011 -0500
+@@ -38,7 +38,8 @@
+                      lngamma, exp_int, error_fcn, elliptic_e,
+                      elliptic_f, elliptic_ec, elliptic_eu,
+                      elliptic_kc, elliptic_pi, elliptic_j,
+-                     airy_ai, airy_bi)
++                     airy_ai, airy_bi,
++                     exp_integral_e)
+                         
+ from orthogonal_polys import (chebyshev_T,
+                               chebyshev_U,
+diff -r ce324e28c333 -r 73ad303a00b4 sage/functions/special.py
+--- a/sage/functions/special.py	Mon May 23 13:36:51 2011 +0000
++++ b/sage/functions/special.py	Tue Jun 14 18:45:08 2011 -0500
+@@ -12,6 +12,8 @@
+ 
+ - David Joyner (2008-04-23): addition of elliptic integrals
+ 
++- Benjamin Jones (2011-06-12): addition of the generalized exponential integral
++
+ This module provides easy access to many of Maxima and PARI's
+ special functions.
+ 
+@@ -393,8 +395,12 @@
+ import sage.rings.commutative_ring as commutative_ring
+ import sage.rings.ring as ring
+ from sage.functions.other import real, imag
+-from sage.symbolic.function import BuiltinFunction
++from sage.symbolic.function import BuiltinFunction, is_inexact
+ from sage.calculus.calculus import maxima
++from sage.symbolic.expression import Expression
++from sage.structure.parent import Parent
++from sage.structure.coerce import parent
++from sage.libs.mpmath import utils as mpmath_utils
+ 
+ _done = False
+ def _init():
+@@ -1774,5 +1780,172 @@
+         except:
+             raise NotImplementedError
+ 
++class Function_exp_integral_e(BuiltinFunction):
++    r"""
++    The generalized complex exponential integral `E_n(z)` defined by
+ 
++    .. math::
+ 
++        \operatorname{E_n}(z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
++
++    for complex numbers `n` and `z`, see [AS]_ 5.1.4. 
++
++    The special case where `n = 1` is denoted in Sage by 
++    :meth:`exponential_integral_1`. 
++
++    EXAMPLES:
++
++    Numerical evaluation is handled using mpmath::
++
++        sage: N(exp_integral_e(1,1)) 
++        0.219383934395520
++
++    We can compare this to PARI's evaluation of :meth:`exponential_integral_1`::
++
++        sage: N(exponential_integral_1(1))
++        0.219383934395520
++
++    We can verify one case of [AS]_ 5.1.45, i.e. `E_n(z) = z^{n-1}\Gamma(1-n,z)`::
++
++        sage: N(exp_integral_e(2, 3+I))
++        0.00354575823814662 - 0.00973200528288687*I
++        sage: N((3+I)*gamma(-1, 3+I))
++        0.00354575823814662 - 0.00973200528288687*I
++
++    Maxima returns the following improper integral as a multiple of exp_integral_e(1,1)::
++
++        sage: uu = integral(e^(-x)*log(x+1),x,0,oo)
++        sage: uu
++        e*exp_integral_e(1, 1)
++        sage: uu.n(digits=30)
++        0.596347362323194074341078499369
++
++    Symbolic derivatives and integrals are handled by Sage and Maxima::
++
++        sage: x = var('x')
++        sage: f = exp_integral_e(2,x)
++        sage: f.diff(x)
++        -exp_integral_e(1, x)
++        
++        sage: f.integrate(x)
++        -exp_integral_e(3, x)
++        
++        sage: f = exp_integral_e(-1,x)
++        sage: f.integrate(x)
++        Ei(-x) - gamma(-1, x)
++        
++    Sage automatically converts some special values of `exp_integral_e`.
++    [AS]_ 5.1.23::
++        
++        sage: exp_integral_e(0,x)
++        e^(-x)/x
++        
++    [AS]_ 5.1.24::
++    
++        sage: nn = var('nn')
++        sage: assume(nn > 1)
++        sage: exp_integral_e(nn,0)
++        1/(nn - 1)
++
++    ALGORITHM: 
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    by Sage and Maxima.
++
++    REFERENCES:
++
++    .. [AS] 'Handbook of Mathematical Functions', Milton Abramowitz and Irene A. Stegun, National Bureau of Standards Applied Mathematics Series, 55. 
++    See also http://www.math.sfu.ca/~cbm/aands/.
++
++    """
++    def __init__(self):
++        """
++        See the docstring for :class:`Function_exp_integral_e`.
++
++        EXAMPLES::
++
++            sage: exp_integral_e(1,0)
++            exp_integral_e(1, 0)
++
++        """
++        BuiltinFunction.__init__(self, "exp_integral_e", nargs=2, latex_name=r'exp_integral_e',
++                                 conversions=dict(maxima='expintegral_e'))
++
++    def _eval_(self, n, z ):
++        """
++        EXAMPLES::
++
++            sage: exp_integral_e(1,1+I)
++            exp_integral_e(1, I + 1)
++            
++        Sage automatically converts some special values of `exp_integral_e`.
++        [AS]_ 5.1.23::
++            
++            sage: exp_integral_e(0,x)
++            e^(-x)/x
++            sage: exp_integral_e(0,x,hold=True)
++            exp_integral_e(0, x)
++            
++        [AS]_ 5.1.24::
++        
++            sage: nn = var('nn')
++            sage: assume(nn > 1)
++            sage: exp_integral_e(nn,0)
++            1/(nn - 1)
++            sage: forget()
++            sage: exp_integral_e(nn,0)
++            exp_integral_e(nn, 0)
++            
++        """
++        if not isinstance(n, Expression) and not isinstance(z, Expression) and \
++               (is_inexact(n) or is_inexact(z)):
++            coercion_model = sage.structure.element.get_coercion_model()
++            n, z = coercion_model.canonical_coercion(n, z)
++            return self._evalf_(n, z, parent(n))
++
++        if z == 0 and n > 1: # [AS] 5.1.23
++            return 1/(n-1)
++        if n == 0: # [AS] 5.1.24
++            from sage.functions.log import exp
++            return exp(-z)/z
++        return None
++        
++    def _evalf_(self, n, z, parent=None):
++        """
++        EXAMPLES::
++
++            sage: N(exp_integral_e(1,1+I))
++            0.000281624451981418 - 0.179324535039359*I
++
++        """
++        import mpmath
++        if isinstance(parent, Parent) and hasattr(parent, 'prec'):
++            prec = parent.prec()
++        else:
++            prec = 53
++        return mpmath_utils.call(mpmath.expint, n, z, prec=prec)
++        
++    def _derivative_(self, n, z, diff_param=None):
++        """
++        If `n` is an integer strictly larger than 0, then the derivative of
++        `exp_integral_e(n,z)` with respect to `z` is `-1*exp_integral_e(n-1,z)`. 
++        See [AS], 5.1.26.
++
++        EXAMPLES::
++
++            sage: x = var('x')
++            sage: f = exp_integral_e(2,x)
++            sage: f.diff(x)
++            -exp_integral_e(1, x)
++
++            sage: f = exp_integral_e(2,sqrt(x))
++            sage: f.diff(x)
++            -1/2*exp_integral_e(1, sqrt(x))/sqrt(x)
++
++        """
++        if n in ZZ and n > 0:
++            return -1*exp_integral_e(n-1,z)
++        else:
++            raise NotImplementedError("The derivative of is only implemented for n = 1, 2, 3, ...")
++
++exp_integral_e = Function_exp_integral_e()

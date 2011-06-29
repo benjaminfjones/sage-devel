@@ -1,0 +1,41 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1290115622 21600
+# Node ID cfb769b3c8e8b29bfc66571eca05e1e4dbbbbdff
+# Parent  09f6bc4be04a7f6e2ad6e574a49a68ce3269c38e
+Trac 9028: added new example to variance()
+
+diff -r 09f6bc4be04a -r cfb769b3c8e8 sage/stats/basic_stats.py
+--- a/sage/stats/basic_stats.py	Sun Nov 07 23:55:16 2010 +0100
++++ b/sage/stats/basic_stats.py	Thu Nov 18 15:27:02 2010 -0600
+@@ -247,6 +247,21 @@
+         ...        return 1    
+         sage: stats.variance(MyClass())
+         1
++        sage: class SillyPythonList:
++        ...     def __init__(self):
++        ...         self.__list = [2L,4L]
++        ...     def __len__(self):
++        ...         return len(self.__list)
++        ...     def __iter__(self):
++        ...         return self.__list.__iter__()
++        ...     def mean(self):
++        ...         return 3L
++        sage: R = SillyPythonList()
++        sage: variance(R)
++        2
++        sage: variance(R, bias=True)
++        1
++        
+ 
+     TESTS:
+ 
+@@ -280,7 +295,7 @@
+     else:
+         # sample variance
+         if isinstance(x, (int,long)):
+-            return x/ZZ(len(v))
++            return x/ZZ(len(v)-1)
+         return x/(len(v)-1)
+ 
+ 

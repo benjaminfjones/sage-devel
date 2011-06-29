@@ -1,0 +1,32 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1291579190 21600
+# Node ID eaa3c0e0fba49f8debd729b7536b2b13b42ed8c5
+# Parent  c0a15f41a85b11cf5aad0860ccd9e8578938d0cf
+Trac 10367: fixed documentation error in ``Spherical`` and ``Cylindrical``
+
+diff -r c0a15f41a85b -r eaa3c0e0fba4 sage/plot/plot3d/plot3d.py
+--- a/sage/plot/plot3d/plot3d.py	Sun Dec 05 13:41:48 2010 -0600
++++ b/sage/plot/plot3d/plot3d.py	Sun Dec 05 13:59:50 2010 -0600
+@@ -397,8 +397,8 @@
+         sage: T.transform(radius=r, azimuth=theta, inclination=phi)
+         (r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi))
+     
+-    We can plot with this transform.  Remember that the independent
+-    variable is the radius, and the dependent variables are the
++    We can plot with this transform.  Remember that the dependent
++    variable is the radius, and the independent variables are the
+     azimuth and the inclination (in that order)::
+ 
+         sage: plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
+@@ -530,8 +530,8 @@
+         sage: T.transform(radius=r, azimuth=theta, height=z)
+         (r*cos(theta), r*sin(theta), z)
+ 
+-    We can plot with this transform.  Remember that the independent
+-    variable is the height, and the dependent variables are the
++    We can plot with this transform.  Remember that the dependent
++    variable is the height, and the independent variables are the
+     radius and the azimuth (in that order)::
+ 
+         sage: plot3d(9-r^2, (r, 0, 3), (theta, 0, pi), transformation=T)
