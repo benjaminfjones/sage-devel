@@ -1,0 +1,101 @@
+# HG changeset patch
+# User maldun <domors@gmx.net>
+# Date 1282750756 -7200
+# Node ID 986c746933c585992e236d451897e6a85a406529
+# Parent  eca423c1b89858a247ed84ea526811121831d62f
+Trac 8321: Numerical evaluation of symbolic integrals with arbitrary precision is now possible, with help of mpmath
+
+diff --git a/sage/symbolic/integration/integral.py b/sage/symbolic/integration/integral.py
+--- a/sage/symbolic/integration/integral.py
++++ b/sage/symbolic/integration/integral.py
+@@ -133,11 +133,40 @@
+         """
+         Symbolic function representing a definite integral.
+ 
+-        EXAMPLES::
++        EXAMPLES:
++        
++        ::
+ 
+             sage: from sage.symbolic.integration.integral import definite_integral
+             sage: definite_integral(sin(x),x,0,pi)
+             2
++            
++        If the integral can be evaluated in exact sybolic form, this is returned
++        and used for numerical evaluation::
++        
++        sage: sigma = 1e-4
++        sage: ff = exp(-x**2/(2*sigma)) / sqrt(2*pi*sigma)
++        sage: from sage.symbolic.integration.integral import definite_integral
++        sage: definite_integral(ff, x, -20, 10)
++        0.353553390593*(sqrt(pi)*sqrt(2)*erf(500*sqrt(2)) + sqrt(pi)*sqrt(2)*erf(1000*sqrt(2)))/sqrt(pi)
++        sage: definite_integral(ff, x, -20, 10).n()
++        1.00000000000000
++        
++        Evaluating the integral in exact symbolic form can be avoided using the 
++        `hold = True` option. When a definite integral of this form is numerically
++        evaluated, numercial integration is performed at the indicated precision.
++        
++        In this example, the numerical integration algorithm gives a result which is far
++        from the true value of the definite integral, even when the precision is set
++        very large::
++        
++        sage: definite_integral(ff, x, -20, 10, hold=True)
++        integrate(70.7106781186548*e^(-5000.00000000000*x^2)/sqrt(pi), x, -20, 10)
++        sage: definite_integral(ff, x, -20, 10, hold=True).n()
++        5.38249970415053e-939 # note that this is far from 1.0
++        sage: definite_integral(ff, x, -20, 10, hold=True).n(100)
++        5.3824997041509677979361923762e-939
++        
+         """
+         # The automatic evaluation routine will try these integrators
+         # in the given order. This is an attribute of the class instead of
+@@ -176,7 +205,7 @@
+                 pass
+         return None
+ 
+-    def _evalf_(self, f, x, a, b, parent=None):
++    def _evalf_(self, f, x, a, b, parent = None): 
+         """
+         Returns numerical approximation of the integral
+         
+@@ -186,7 +215,7 @@
+             sage: h = definite_integral(sin(x)*log(x)/x^2, x, 1, 2); h
+             integrate(log(x)*sin(x)/x^2, x, 1, 2)
+             sage: h.n() # indirect doctest
+-            0.14839875208053...
++            0.472399177268953
+ 
+         TESTS:
+ 
+@@ -194,11 +223,26 @@
+ 
+             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
+             0.154572952320790
++
++        #Check if #8321 is fixed:
++
++            sage: d = definite_integral(sin(x)/x^2, x, 1, 2)
++            sage: d.n(77)
++            0.4723991772689525199904
+         """
+-        from sage.gsl.integration import numerical_integral
+-        # The gsl routine returns a tuple, which also contains the error.
+-        # We only return the result.
+-        return numerical_integral(f, a, b)[0]
++
++        import sage.libs.mpmath.all as mpmath
++
++        try:
++            precision = parent.prec()
++            mpmath.mp.prec = precision
++        except AttributeError:
++            precision = mpmath.mp.prec
++
++        mp_f = lambda z: \
++               f(x = mpmath.mpmath_to_sage(z,precision))
++
++        return mpmath.call(mpmath.quad,mp_f,[a,b])
+ 
+     def _tderivative_(self, f, x, a, b, diff_param=None):
+         """

@@ -1,0 +1,93 @@
+I'm testing on OS X 10.6.8 / Sage-4.7.2.alpha2. 
+
+    ./sage -startuptime` gives 1.47 seconds BEFORE
+    ./sage -startuptime` gives 1.20 seconds AFTER
+
+I ran `make ptest` after applying the patches and I get a couple of doctest errors, some of which may be known already
+
+...
+
+sage -t  -force_lib devel/sage/sage/algebras/group_algebra.py
+**********************************************************************
+File "/Users/jonesbe/sage/sage-4.7.2.alpha2/devel/sage-test/sage/algebras/group_algebra.py", line 53:
+    sage: from sage.algebras.group_algebra import GroupAlgebra
+Expected:
+    doctest:1: DeprecationWarning:...
+Got:
+    doctest:175: DeprecationWarning: The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_al
+gebra_new instead.
+**********************************************************************
+
+...
+
+
+sage -t  -force_lib devel/sage/sage/calculus/interpolators.pyx
+         [9.7 s]
+...skipping...
+***Test Failed*** 1 failures.
+For whitespace errors, see the file /Users/jonesbe/.sage//tmp/.doctest_gp.py
+
+...
+
+
+sage -t  -force_lib devel/sage/sage/interfaces/r.py
+         [8.0 s]
+...skipping...
+***Test Failed*** 1 failures.
+For whitespace errors, see the file /Users/jonesbe/.sage//tmp/.doctest_dokchitser.py
+         [11.2 s]
+
+...
+
+
+sage -t  -force_lib devel/sage/sage/libs/mpmath/__init__.py
+         [0.1 s]
+...skipping...
+Failed to saturate MW basis at primes [ ]
+Saturation index bound = 265
+WARNING: saturation at primes p > 199 will not be done;  
+points may be unsaturated at primes between 199 and index bound
+Failed to saturate MW basis at primes [ ]
+Saturation index bound = 265
+WARNING: saturation at primes p > 97 will not be done;  
+points may be unsaturated at primes between 97 and index bound
+Failed to saturate MW basis at primes [ ]
+Saturation index bound = 265
+WARNING: saturation at primes p > 199 will not be done;  
+points may be unsaturated at primes between 199 and index bound
+Failed to saturate MW basis at primes [ ]
+After 10 attempts at enlargement, giving up!
+--points not proved 2-saturated,
+2-saturation failed!
+Failed to saturate MW basis at primes [ 2 ]
+2 After 10 attempts at enlargement, giving up!
+--points not proved 2-saturated,
+2-saturation failed!
+Failed to saturate MW basis at primes [ 2 ]
+2 **********************************************************************
+1 items had failures:
+   2 of   9 in __main__.example_12
+***Test Failed*** 2 failures.
+For whitespace errors, see the file /Users/jonesbe/.sage//tmp/.doctest_ell_rational_field.py
+
+...
+
+sage -t  -force_lib devel/sage/sage/schemes/hyperelliptic_curves/jacobian_g2.py
+...skipping...
+***Test Failed*** 1 failures.
+For whitespace errors, see the file /Users/jonesbe/.sage//tmp/.doctest_cmdline.py
+         [22.7 s]
+sage -t  -force_lib devel/sage/sage/tests/french_book/numbertheory.py
+         [17.2 s]
+ 
+----------------------------------------------------------------------
+
+The following tests failed:
+
+        sage -t  -force_lib 7.2.alpha2/devel/sage/sage/algebras/group_algebra.py # 1 doctests failed
+        sage -t  -force_lib 7.2.alpha2/devel/sage/sage/interfaces/gp.py # 1 doctests failed
+        sage -t  -force_lib 7.2.alpha2/devel/sage/sage/lfunctions/dokchitser.py # 1 doctests failed
+        sage -t  -force_lib 7.2.alpha2/devel/sage/sage/schemes/elliptic_curves/ell_rational_field.py # 2 doctests failed
+        sage -t  -force_lib 7.2.alpha2/devel/sage/sage/tests/cmdline.py # 1 doctests failed
+----------------------------------------------------------------------
+Total time for all tests: 2983.9 seconds
