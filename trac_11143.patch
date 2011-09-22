@@ -1,7 +1,7 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
 # Date 1314069403 25200
-# Node ID be49080be52120016d323d7649999ab6a2c39de7
+# Node ID dab05d11355c2e8e4c8550fcb87a0c94194920ba
 # Parent  3b184206625d7d98531c62a24ab3de7c8f674623
 Trac 11143: added exp_integral_e, exp_integral_e1, and moved other exponential integrals to new file sage/functions/exp_integral.py
 
@@ -55,7 +55,7 @@ diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
 new file mode 100644
 --- /dev/null
 +++ b/sage/functions/exp_integral.py
-@@ -0,0 +1,1290 @@
+@@ -0,0 +1,1294 @@
 +r"""
 +Exponential Integrals
 +
@@ -63,12 +63,12 @@ new file mode 100644
 +
 +- Benjamin Jones (2011-06-12)
 +
-+This module provides easy access to many exponential integral 
++This module provides easy access to many exponential integral
 +special functions. It utilizes Maxima's `special functions package`_ and
-+the `mpmath package`_. 
++the `mpmath package`_.
 +
-+Maxima's special functions package was written by Barton Willis of the 
-+University of Nebraska at Kearney. It is released under the terms of the 
++Maxima's special functions package was written by Barton Willis of the
++University of Nebraska at Kearney. It is released under the terms of the
 +General Public License (GPL).
 +
 +Next, we give the definitions of the functions implemented here.
@@ -92,7 +92,7 @@ new file mode 100644
 +
 +.. _[AS]: http://www.math.sfu.ca/~cbm/aands/
 +.. _`special functions package`: http://maxima.sourceforge.net/docs/manual/en/maxima_15.html
-+.. _`mpmath library`: http://code.google.com/p/mpmath/ 
++.. _`mpmath library`: http://code.google.com/p/mpmath/
 +
 +AUTHORS:
 +
@@ -149,27 +149,27 @@ new file mode 100644
 +
 +        \operatorname{E_n}(z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
 +
-+    for complex numbers `n` and `z`, see [AS]_ 5.1.4. 
++    for complex numbers `n` and `z`, see [AS]_ 5.1.4.
 +
-+    The special case where `n = 1` is denoted in Sage by 
-+    :meth:`exponential_integral_1`. 
++    The special case where `n = 1` is denoted in Sage by
++    :meth:`exponential_integral_1`.
 +
 +    EXAMPLES:
 +
 +    Numerical evaluation is handled using mpmath::
 +
-+        sage: N(exp_integral_e(1,1)) 
++        sage: N(exp_integral_e(1,1))
 +        0.219383934395520
 +        sage: exp_integral_e(1, RealField(100)(1))
 +        0.21938393439552027367716377546
 +
-+    We can compare this to PARI's evaluation of 
++    We can compare this to PARI's evaluation of
 +    :meth:`exponential_integral_1`::
 +
 +        sage: N(exponential_integral_1(1))
 +        0.219383934395520
 +
-+    We can verify one case of [AS]_ 5.1.45, i.e. 
++    We can verify one case of [AS]_ 5.1.45, i.e.
 +    `E_n(z) = z^{n-1}\Gamma(1-n,z)`::
 +
 +        sage: N(exp_integral_e(2, 3+I))
@@ -177,7 +177,7 @@ new file mode 100644
 +        sage: N((3+I)*gamma(-1, 3+I))
 +        0.00354575823814662 - 0.00973200528288687*I
 +
-+    Maxima returns the following improper integral as a multiple of 
++    Maxima returns the following improper integral as a multiple of
 +    exp_integral_e(1,1)::
 +
 +        sage: uu = integral(e^(-x)*log(x+1),x,0,oo)
@@ -192,38 +192,38 @@ new file mode 100644
 +        sage: f = exp_integral_e(2,x)
 +        sage: f.diff(x)
 +        -exp_integral_e(1, x)
-+        
++
 +        sage: f.integrate(x)
 +        -exp_integral_e(3, x)
-+        
++
 +        sage: f = exp_integral_e(-1,x)
 +        sage: f.integrate(x)
 +        Ei(-x) - gamma(-1, x)
-+        
++
 +    Some special values of `exp_integral_e` can be simplified.
 +    [AS]_ 5.1.23::
-+        
++
 +        sage: f = exp_integral_e(0,x)
 +        sage: f.simplify()
 +        e^(-x)/x
-+        
++
 +    [AS]_ 5.1.24::
-+    
++
 +        sage: nn = var('nn')
 +        sage: assume(nn > 1)
 +        sage: f = exp_integral_e(nn,0)
 +        sage: f.simplify()
 +        1/(nn - 1)
 +
-+    ALGORITHM: 
++    ALGORITHM:
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
 +
 +    REFERENCES:
 +
-+    .. _[AS] 'Handbook of Mathematical Functions', Milton Abramowitz and Irene 
-+    A. Stegun, National Bureau of Standards Applied Mathematics Series, 55. 
++    .. _[AS] 'Handbook of Mathematical Functions', Milton Abramowitz and Irene
++    A. Stegun, National Bureau of Standards Applied Mathematics Series, 55.
 +    See also http://www.math.sfu.ca/~cbm/aands/.
 +
 +    """
@@ -250,15 +250,15 @@ new file mode 100644
 +            exp_integral_e(x, 1.00000000000000)
 +            sage: exp_integral_e(1.0, 1.0)
 +            0.219383934395520
-+            
++
 +        """
 +        if not isinstance(n, Expression) and not isinstance(z, Expression) and \
 +               (is_inexact(n) or is_inexact(z)):
 +            coercion_model = sage.structure.element.get_coercion_model()
 +            n, z = coercion_model.canonical_coercion(n, z)
 +            return self._evalf_(n, z, parent(n))
-+        
-+        z_zero = False    
++
++        z_zero = False
 +        # special case: z == 0 and n > 1
 +        if isinstance(z, Expression):
 +            if z._is_numerically_zero():
@@ -266,7 +266,7 @@ new file mode 100644
 +                if n > 1:
 +                    return 1/(n-1)
 +        else:
-+            if not z: 
++            if not z:
 +                z_zero = True
 +                if n > 1:
 +                    return 1/(n-1)
@@ -299,11 +299,11 @@ new file mode 100644
 +        """
 +        import mpmath
 +        return mpmath_utils.call(mpmath.expint, n, z, parent=parent)
-+        
++
 +    def _derivative_(self, n, z, diff_param=None):
 +        """
 +        If `n` is an integer strictly larger than 0, then the derivative of
-+        `exp_integral_e(n,z)` with respect to `z` is 
++        `exp_integral_e(n,z)` with respect to `z` is
 +        `-1*exp_integral_e(n-1,z)`. See [AS], 5.1.26.
 +
 +        EXAMPLES::
@@ -334,18 +334,18 @@ new file mode 100644
 +
 +        \operatorname{E_1}(z) = \int_z^\infty \frac{e^{-t}}{t}\; dt
 +
-+    see [AS]_ 5.1.4. 
++    see [AS]_ 5.1.4.
 +
 +    EXAMPLES:
 +
 +    Numerical evaluation is handled using mpmath::
 +
-+        sage: N(exp_integral_e1(1)) 
++        sage: N(exp_integral_e1(1))
 +        0.219383934395520
 +        sage: exp_integral_e1(RealField(100)(1))
 +        0.21938393439552027367716377546
 +
-+    We can compare this to PARI's evaluation of 
++    We can compare this to PARI's evaluation of
 +    :meth:`exponential_integral_1`::
 +
 +        sage: N(exp_integral_e1(2.0))
@@ -359,13 +359,13 @@ new file mode 100644
 +        sage: f = exp_integral_e1(x)
 +        sage: f.diff(x)
 +        -e^(-x)/x
-+        
++
 +        sage: f.integrate(x)
 +        -exp_integral_e(2, x)
-+        
-+    ALGORITHM: 
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
 +
 +    """
@@ -389,7 +389,7 @@ new file mode 100644
 +            exp_integral_e1(x)
 +            sage: exp_integral_e1(1.0)
 +            0.219383934395520
-+            
++
 +        """
 +        if not isinstance(z, Expression) and is_inexact(z):
 +            return self._evalf_(z, parent(z))
@@ -408,7 +408,7 @@ new file mode 100644
 +        """
 +        import mpmath
 +        return mpmath_utils.call(mpmath.e1, z, parent=parent)
-+        
++
 +    def _derivative_(self, z, diff_param=None):
 +        """
 +        The derivative of `E_1(z)` is `-e^{-z}/z`. See [AS], 5.1.26.
@@ -419,7 +419,7 @@ new file mode 100644
 +            sage: f = exp_integral_e1(x)
 +            sage: f.diff(x)
 +            -e^(-x)/x
-+            
++
 +            sage: f = exp_integral_e1(x^2)
 +            sage: f.diff(x)
 +            -2*e^(-x^2)/x
@@ -428,7 +428,7 @@ new file mode 100644
 +        return -exp(-z)/z
 +
 +exp_integral_e1 = Function_exp_integral_e1()
-+    
++
 +
 +class Function_exp_integral_li(BuiltinFunction):
 +    r"""
@@ -436,7 +436,7 @@ new file mode 100644
 +
 +    .. math::
 +
-+        \operatorname{li}(x) = \int_0^z \frac{dt}{\ln(t)} = \operatorname{Ei}(\ln(x)) 
++        \operatorname{li}(x) = \int_0^z \frac{dt}{\ln(t)} = \operatorname{Ei}(\ln(x))
 +
 +    for x > 1 and by analytic continuation for complex arguments z (see [AS]_ 5.1.3).
 +
@@ -444,7 +444,7 @@ new file mode 100644
 +
 +    Numerical evaluation for real and complex arguments is handled using mpmath::
 +
-+        sage: N(exp_integral_li(3)) 
++        sage: N(exp_integral_li(3))
 +        2.16358859466719
 +        sage: N(exp_integral_li(3), digits=30)
 +        2.16358859466719197287692236735
@@ -457,26 +457,26 @@ new file mode 100644
 +        sage: f = exp_integral_li(x)
 +        sage: f.diff(x)
 +        1/log(x)
-+        
++
 +        sage: f.integrate(x)
 +        x*exp_integral_li(x) - expintegral_ei(2*log(x))
-+        
-+    Here is a test from the mpmath documentation. There are 
-+    1,925,320,391,606,803,968,923 many prime numbers less than 1e23. The 
++
++    Here is a test from the mpmath documentation. There are
++    1,925,320,391,606,803,968,923 many prime numbers less than 1e23. The
 +    value of exp_integral_li(1e23) is very close to this:
-+    
++
 +        sage: exp_integral_li(1e23)
 +        1.92532039161405e21
-+        
-+    ALGORITHM: 
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
-+    
++
 +    REFERENCES:
-+    
++
 +    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
-+    
++
 +    - mpmath documentation:
 +      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
 +
@@ -502,7 +502,7 @@ new file mode 100644
 +            exp_integral_li(z)
 +            sage: exp_integral_li(3.0)
 +            2.16358859466719
-+            
++
 +        """
 +        if not isinstance(z, Expression) and is_inexact(z):
 +            return self._evalf_(z, parent(z))
@@ -521,7 +521,7 @@ new file mode 100644
 +        """
 +        import mpmath
 +        return mpmath_utils.call(mpmath.li, z, parent=parent)
-+        
++
 +    def _derivative_(self, z, diff_param=None):
 +        """
 +        The derivative of li(z) is 1/log(z).
@@ -532,7 +532,7 @@ new file mode 100644
 +            sage: f = exp_integral_li(x)
 +            sage: f.diff(x)
 +            1/log(x)
-+            
++
 +            sage: f = exp_integral_li(x^2)
 +            sage: f.diff(x)
 +            2*x/log(x^2)
@@ -567,47 +567,47 @@ new file mode 100644
 +        1.84865252799946825639773025111
 +        sage: exp_integral_si(ComplexField(100)(3+I))
 +        2.0277151656451253616038525998 + 0.015210926166954211913653130271*I
-+            
++
 +    The limit Si(z) as z -> infinity is pi/2::
-+    
++
 +        sage: N(exp_integral_si(1e23))
 +        1.57079632679490
 +        sage: N(pi/2)
 +        1.57079632679490
-+        
++
 +    At 200 bits of precision Si(1e23) agrees with pi/2 up to 1e-24::
-+        
++
 +        sage: exp_integral_si(RealField(200)(1e23))
 +        1.5707963267948966192313288218697837425815368604836679189519
 +        sage: N(pi/2, prec=200)
 +        1.5707963267948966192313216916397514420985846996875529104875
-+        
++
 +    The exponential sine integral is analytic everywhere::
-+    
++
 +        sage: exp_integral_si(-1.0)
 +        -0.946083070367183
 +        sage: exp_integral_si(-2.0)
 +        -1.60541297680269
 +        sage: exp_integral_si(-1e23)
 +        -1.57079632679490
-+    
++
 +    Symbolic derivatives and integrals are handled by Sage and Maxima::
 +
 +        sage: x = var('x')
 +        sage: f = exp_integral_si(x)
 +        sage: f.diff(x)
 +        sin(x)/x
-+        
++
 +        sage: f.integrate(x)
 +        x*exp_integral_si(x) + cos(x)
-+        
++
 +        sage: integrate(sin(x)/x, x)
 +        1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x)
-+        
-+    Compare values of the functions si(x) and 
-+    f(x) = 1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x) - pi/2, which are both anti-derivatives of 
++
++    Compare values of the functions si(x) and
++    f(x) = 1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x) - pi/2, which are both anti-derivatives of
 +    sin(x)/x, at some random positive real numbers::
-+    
++
 +        sage: f(x) = 1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x) - pi/2
 +        sage: g(x) = exp_integral_si(x)
 +        sage: R = [ abs(RDF.random_element()) for i in range(100) ]
@@ -621,16 +621,16 @@ new file mode 100644
 +        sage: g = lambda t: exp_integral_ci(RDF(t))
 +        sage: P = parametric_plot([f, g], (t, 0.5 ,20))
 +        sage: show(P, frame=True, axes=False)
-+        
-+    ALGORITHM: 
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
-+    
++
 +    REFERENCES:
-+    
++
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
-+    
++
 +    - mpmath documentation:
 +      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#ci
 +
@@ -658,17 +658,17 @@ new file mode 100644
 +            1.84865252799947
 +            sage: exp_integral_si(0)
 +            0
-+            
++
 +        """
 +        if not isinstance(z, Expression) and is_inexact(z):
 +            return self._evalf_(z, parent(z))
-+        
++
 +        # special case: z = 0
 +        if isinstance(z, Expression):
 +            if z._is_numerically_zero():
 +                return 0
 +        else:
-+            if not z: 
++            if not z:
 +                return 0
 +
 +        return None # leaves the expression unevaluated
@@ -676,22 +676,22 @@ new file mode 100644
 +    def _evalf_(self, z, parent=None):
 +        """
 +        EXAMPLES:
-+        
++
 +        The limit Si(z) as z -> infinity is pi/2::
 +
 +            sage: N(exp_integral_si(1e23) - pi/2)
 +            0.000000000000000
-+            
++
 +        At 200 bits of precision Si(1e23) agrees with pi/2 up to 1e-24::
-+            
++
 +            sage: exp_integral_si(RealField(200)(1e23))
 +            1.5707963267948966192313288218697837425815368604836679189519
 +            sage: N(pi/2, prec=200)
 +            1.5707963267948966192313216916397514420985846996875529104875
-+            
-+        The exponential sine integral is analytic everywhere, even on the 
++
++        The exponential sine integral is analytic everywhere, even on the
 +        negative real axis::
-+        
++
 +            sage: exp_integral_si(-1.0)
 +            -0.946083070367183
 +            sage: exp_integral_si(-2.0)
@@ -701,8 +701,12 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        return mpmath_utils.call(mpmath.si, z, parent=parent)
-+        
++        if isinstance(parent, Parent) and hasattr(parent, 'prec'):
++            prec = parent.prec()
++        else:
++            prec = 53
++        return mpmath_utils.call(mpmath.si, z, prec=prec)
++
 +    def _derivative_(self, z, diff_param=None):
 +        """
 +        The derivative of si(z) is sin(z)/z if z is not zero. The derivative
@@ -714,7 +718,7 @@ new file mode 100644
 +            sage: f = exp_integral_si(x)
 +            sage: f.diff(x)
 +            sin(x)/x
-+            
++
 +            sage: f = exp_integral_si(x^2)
 +            sage: f.diff(x)
 +            2*sin(x^2)/x
@@ -733,7 +737,7 @@ new file mode 100644
 +
 +        \operatorname{Ci}(z) = \gamma + \log(z) + \int_0^z \frac{\cos(t)-1}{t}\; dt,
 +
-+    where $\gamma$ is the Euler gamma constant (`euler_gamma` in Sage), 
++    where $\gamma$ is the Euler gamma constant (`euler_gamma` in Sage),
 +    see [AS]_ 5.2.1.
 +
 +    EXAMPLES:
@@ -742,32 +746,32 @@ new file mode 100644
 +
 +        sage: exp_integral_ci(3.0)
 +        0.119629786008000
-+        
++
 +    Compare exp_integral_ci(3.0) to the definition of the value using
 +    numerical integration::
-+    
++
 +        sage: N(euler_gamma + log(3.0) + integrate((cos(x)-1)/x, x, 0, 3.0) - exp_integral_ci(3.0)) < 1e-14
 +        True
-+        
++
 +    Arbitrary precision and complex arguments are handled::
-+        
++
 +        sage: N(exp_integral_ci(3), digits=30)
 +        0.119629786008000327626472281177
 +        sage: exp_integral_ci(ComplexField(100)(3+I))
 +        0.078134230477495714401983633057 - 0.37814733904787920181190368789*I
-+            
++
 +    The limit Ci(z) as z -> infinity is zero::
-+    
++
 +        sage: N(exp_integral_ci(1e23))
 +        -3.24053937643003e-24
-+    
++
 +    Symbolic derivatives and integrals are handled by Sage and Maxima::
 +
 +        sage: x = var('x')
 +        sage: f = exp_integral_ci(x)
 +        sage: f.diff(x)
 +        cos(x)/x
-+        
++
 +        sage: f.integrate(x)
 +        x*exp_integral_ci(x) - sin(x)
 +
@@ -778,16 +782,16 @@ new file mode 100644
 +        sage: g = lambda t: exp_integral_ci(RDF(t))
 +        sage: P = parametric_plot([f, g], (t, 0.5 ,20))
 +        sage: show(P, frame=True, axes=False)
-+        
-+    ALGORITHM: 
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
-+    
++
 +    REFERENCES:
-+    
++
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
-+    
++
 +    - mpmath documentation:
 +      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#ci
 +
@@ -817,7 +821,7 @@ new file mode 100644
 +            exp_integral_ci(0)
 +            sage: N(exp_integral_ci(0))
 +            -infinity
-+            
++
 +        """
 +        if not isinstance(z, Expression) and is_inexact(z):
 +            return self._evalf_(z, parent(z))
@@ -838,7 +842,7 @@ new file mode 100644
 +        """
 +        import mpmath
 +        return mpmath_utils.call(mpmath.ci, z, parent=parent)
-+        
++
 +    def _derivative_(self, z, diff_param=None):
 +        """
 +        The derivative of ci(z) is cos(z)/z if z is not zero.
@@ -849,7 +853,7 @@ new file mode 100644
 +            sage: f = exp_integral_ci(x)
 +            sage: f.diff(x)
 +            cos(x)/x
-+            
++
 +            sage: f = exp_integral_ci(x^2)
 +            sage: f.diff(x)
 +            2*cos(x^2)/x
@@ -880,44 +884,44 @@ new file mode 100644
 +        1.05725087537573
 +        sage: exp_integral_shi(-1.0)
 +        -1.05725087537573
-+        
++
 +    Compare exp_integral_shi(3.0) to the definition of the value using
 +    numerical integration::
-+    
++
 +        sage: N(integrate((sinh(x))/x, x, 0, 3.0) - exp_integral_shi(3.0)) < 1e-14
 +        True
-+        
++
 +    Arbitrary precision and complex arguments are handled::
-+        
++
 +        sage: N(exp_integral_shi(3), digits=30)
 +        4.97344047585980679771041838252
 +        sage: exp_integral_shi(ComplexField(100)(3+I))
 +        3.9134623660329374406788354078 + 3.0427678212908839256360163759*I
 +
 +    The limit Shi(z) as z -> infinity is +infinity::
-+    
++
 +        sage: N(exp_integral_shi(Infinity))
 +        +infinity
-+    
++
 +    Symbolic derivatives and integrals are handled by Sage and Maxima::
 +
 +        sage: x = var('x')
 +        sage: f = exp_integral_shi(x)
 +        sage: f.diff(x)
 +        sinh(x)/x
-+        
++
 +        sage: f.integrate(x)
 +        x*exp_integral_shi(x) - cosh(x)
-+        
-+    ALGORITHM: 
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
-+    
++
 +    REFERENCES:
-+    
++
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
-+    
++
 +    - mpmath documentation:
 +      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#shi
 +
@@ -945,7 +949,7 @@ new file mode 100644
 +            4.97344047585981
 +            sage: exp_integral_shi(0)
 +            0
-+            
++
 +        """
 +        if not isinstance(z, Expression) and is_inexact(z):
 +            return self._evalf_(z, parent(z))
@@ -955,7 +959,7 @@ new file mode 100644
 +            if z._is_numerically_zero():
 +                return 0
 +        else:
-+            if not z: 
++            if not z:
 +                return 0
 +
 +        return None # leaves the expression unevaluated
@@ -972,7 +976,7 @@ new file mode 100644
 +        """
 +        import mpmath
 +        return mpmath_utils.call(mpmath.shi, z, parent=parent)
-+        
++
 +    def _derivative_(self, z, diff_param=None):
 +        """
 +        The derivative of shi(z) is sinh(z)/z.
@@ -983,7 +987,7 @@ new file mode 100644
 +            sage: f = exp_integral_shi(x)
 +            sage: f.diff(x)
 +            sinh(x)/x
-+            
++
 +            sage: f = exp_integral_shi(ln(x))
 +            sage: f.diff(x)
 +            sinh(log(x))/(x*log(x))
@@ -1019,42 +1023,42 @@ new file mode 100644
 +
 +    Compare exp_integral_chi(3.0) to the definition of the value using
 +    numerical integration::
-+    
++
 +        sage: N(euler_gamma + log(3.0) + integrate((cosh(x)-1)/x, x, 0, 3.0) -
 +        ...     exp_integral_chi(3.0)) < 1e-14
 +        True
-+        
++
 +    Arbitrary precision and complex arguments are handled::
-+        
++
 +        sage: N(exp_integral_chi(3), digits=30)
 +        4.96039209476560976029791763669
 +        sage: exp_integral_chi(ComplexField(100)(3+I))
 +        3.9096723099686417127843516794 + 3.0547519627014217273323873274*I
 +
 +    The limit Shi(z) as z -> infinity is +infinity::
-+    
++
 +        sage: N(exp_integral_chi(Infinity))
 +        +infinity
-+    
++
 +    Symbolic derivatives and integrals are handled by Sage and Maxima::
 +
 +        sage: x = var('x')
 +        sage: f = exp_integral_chi(x)
 +        sage: f.diff(x)
 +        cosh(x)/x
-+        
++
 +        sage: f.integrate(x)
 +        x*exp_integral_chi(x) - sinh(x)
-+        
-+    ALGORITHM: 
 +
-+    Numerical evaluation is handled using mpmath, but symbolics are handled 
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
-+    
++
 +    REFERENCES:
-+    
++
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
-+    
++
 +    - mpmath documentation:
 +      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#chi
 +
@@ -1080,7 +1084,7 @@ new file mode 100644
 +            exp_integral_chi(z)
 +            sage: exp_integral_chi(3.0)
 +            4.96039209476561
-+            
++
 +        """
 +        if not isinstance(z, Expression) and is_inexact(z):
 +            return self._evalf_(z, parent(z))
@@ -1099,7 +1103,7 @@ new file mode 100644
 +        """
 +        import mpmath
 +        return mpmath_utils.call(mpmath.chi, z, parent=parent)
-+        
++
 +    def _derivative_(self, z, diff_param=None):
 +        """
 +        The derivative of chi(z) is cosh(z)/z.
@@ -1110,7 +1114,7 @@ new file mode 100644
 +            sage: f = exp_integral_chi(x)
 +            sage: f.diff(x)
 +            cosh(x)/x
-+            
++
 +            sage: f = exp_integral_chi(ln(x))
 +            sage: f.diff(x)
 +            cosh(log(x))/(x*log(x))
@@ -1136,7 +1140,7 @@ new file mode 100644
 +    ``Ei`` or ``exponential_integral_1`` as needed instead.
 +
 +    EXAMPLES::
-+        
++
 +        sage: exp_int(6)
 +        doctest:...: DeprecationWarning: The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
 +        0.000360082452162659
@@ -1155,7 +1159,7 @@ new file mode 100644
 +# moved here from sage/functions/transcendental.py
 +#
 +# This class has a name which is not specific enough
-+# see Function_exp_integral_e above, for example, which 
++# see Function_exp_integral_e above, for example, which
 +# is the "generalized" exponential integral function. We
 +# are leaving the name the same for backwards compatibility
 +# purposes.
@@ -1167,14 +1171,14 @@ new file mode 100644
 +
 +        \operatorname{Ei}(x) = \int_{-\infty}^x \frac{e^t}{t}\; dt
 +
-+    for x > 0 and for complex arguments by analytic continuation,    
-+    see [AS]_ 5.1.2. 
++    for x > 0 and for complex arguments by analytic continuation,
++    see [AS]_ 5.1.2.
 +    """
 +    def __init__(self):
 +        """
 +        Return the value of the complex exponential integral Ei(z) at a
 +        complex number z.
-+        
++
 +        EXAMPLES::
 +
 +            sage: Ei(10)
@@ -1185,14 +1189,14 @@ new file mode 100644
 +            Ei(I + 3)
 +            sage: Ei(1.3)
 +            2.72139888023202
-+            
++
 +        The branch cut for this function is along the negative real axis::
-+    
++
 +            sage: Ei(-3 + 0.1*I)
 +            -0.0129379427181693 + 3.13993830250942*I
 +            sage: Ei(-3 - 0.1*I)
 +            -0.0129379427181693 - 3.13993830250942*I
-+    
++
 +        ALGORITHM: Uses mpmath.
 +        """
 +        BuiltinFunction.__init__(self, "Ei")
@@ -1215,7 +1219,7 @@ new file mode 100644
 +        if not isinstance(x, Expression) and is_inexact(x):
 +            return self._evalf_(x, parent(x))
 +        return None
-+            
++
 +    def _evalf_(self, x, parent=None):
 +        """
 +        EXAMPLES::
@@ -1257,7 +1261,7 @@ new file mode 100644
 +        if prec is not None:
 +            from sage.misc.misc import deprecation
 +            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.")
-+            
++
 +            import mpmath
 +            return mpmath_utils.call(mpmath.ei, x, prec=prec)
 +
@@ -1266,7 +1270,7 @@ new file mode 100644
 +    def _derivative_(self, x, diff_param=None):
 +        """
 +        EXAMPLES::
-+        
++
 +            sage: Ei(x).diff(x)
 +            e^x/x
 +            sage: Ei(x).diff(x).subs(x=1)
@@ -1289,57 +1293,57 @@ new file mode 100644
 +    argument `n` is given, computes list of the first
 +    `n` values of the exponential integral
 +    `E_1(x m)`.
-+    
++
 +    The exponential integral `E_1(x)` is
-+    
++
 +    .. math::
-+    
-+                      E_1(x) = \int_{x}^{\infty} e^{-t}/t dt     
-+    
-+    
-+    
++
++                      E_1(x) = \int_{x}^{\infty} e^{-t}/t dt
++
++
++
 +    INPUT:
-+    
-+    
++
++
 +    -  ``x`` - a positive real number
-+    
++
 +    -  ``n`` - (default: 0) a nonnegative integer; if
 +       nonzero, then return a list of values E_1(x\*m) for m =
 +       1,2,3,...,n. This is useful, e.g., when computing derivatives of
 +       L-functions.
-+    
-+    
++
++
 +    OUTPUT:
-+    
-+    
++
++
 +    -  ``float`` - if n is 0 (the default) or
-+    
++
 +    -  ``list`` - list of floats if n 0
-+    
-+    
++
++
 +    EXAMPLES::
-+    
++
 +        sage: exponential_integral_1(2)
 +        0.048900510708061118
 +        sage: w = exponential_integral_1(2,4); w
 +        [0.048900510708061118, 0.0037793524098489067, 0.00036008245216265873, 3.7665622843924751e-05] # 32-bit
 +        [0.048900510708061118, 0.0037793524098489063, 0.00036008245216265873, 3.7665622843924534e-05] # 64-bit
-+    
++
 +    IMPLEMENTATION: We use the PARI C-library functions eint1 and
 +    veceint1.
-+    
++
 +    REFERENCE:
 +
 +    - See page 262, Prop 5.6.12, of Cohen's book "A Course in
 +      Computational Algebraic Number Theory".
-+    
++
 +    REMARKS: When called with the optional argument n, the PARI
 +    C-library is fast for values of n up to some bound, then very very
 +    slow. For example, if x=5, then the computation takes less than a
 +    second for n=800000, and takes "forever" for n=900000.
 +    """
 +    if isinstance(x, Expression):
-+        raise NotImplementedError("Use the symbolic exponential integral " + 
++        raise NotImplementedError("Use the symbolic exponential integral " +
 +        "function: exp_integral_e1.")
 +    from sage.libs.pari.all import pari
 +    if n <= 0:
@@ -1394,7 +1398,15 @@ diff --git a/sage/functions/special.py b/sage/functions/special.py
 diff --git a/sage/functions/transcendental.py b/sage/functions/transcendental.py
 --- a/sage/functions/transcendental.py
 +++ b/sage/functions/transcendental.py
-@@ -42,67 +42,6 @@
+@@ -18,7 +18,6 @@
+ #*****************************************************************************
+ 
+ import sys
+-from sage.libs.mpmath import utils as mpmath_utils
+ import  sage.libs.pari.all
+ from sage.libs.pari.all import pari, PariError
+ import sage.rings.complex_field as complex_field
+@@ -42,67 +41,6 @@
  CC = complex_field.ComplexField()
  I = CC.gen(0)
  
@@ -1462,7 +1474,7 @@ diff --git a/sage/functions/transcendental.py b/sage/functions/transcendental.py
  class Function_zeta(GinacFunction):
      def __init__(self):
          r"""
-@@ -245,137 +184,6 @@
+@@ -245,137 +183,6 @@
      return (s/2 + 1).gamma()   *    (s-1)   * (R.pi()**(-s/2))  *  s.zeta()
  
  
