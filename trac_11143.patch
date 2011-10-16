@@ -1,8 +1,8 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
 # Date 1314069403 25200
-# Node ID dab05d11355c2e8e4c8550fcb87a0c94194920ba
-# Parent  3b184206625d7d98531c62a24ab3de7c8f674623
+# Node ID 63e35360db8556236303e1c9355b6ca16d25e4c8
+# Parent  dacff6345906c5289fc9677daa93a93764ac6ee8
 Trac 11143: added exp_integral_e, exp_integral_e1, and moved other exponential integrals to new file sage/functions/exp_integral.py
 
 diff --git a/doc/en/reference/functions.rst b/doc/en/reference/functions.rst
@@ -55,7 +55,7 @@ diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
 new file mode 100644
 --- /dev/null
 +++ b/sage/functions/exp_integral.py
-@@ -0,0 +1,1294 @@
+@@ -0,0 +1,1295 @@
 +r"""
 +Exponential Integrals
 +
@@ -65,32 +65,20 @@ new file mode 100644
 +
 +This module provides easy access to many exponential integral
 +special functions. It utilizes Maxima's `special functions package`_ and
-+the `mpmath package`_.
-+
-+Maxima's special functions package was written by Barton Willis of the
-+University of Nebraska at Kearney. It is released under the terms of the
-+General Public License (GPL).
-+
-+Next, we give the definitions of the functions implemented here.
++the `mpmath library`_.
 +
 +REFERENCES:
 +
-+- [AS]_ Abramowitz and Stegun: Handbook of Mathematical Functions,
-+  http://www.math.sfu.ca/~cbm/aands/
-+
++- [AS]_ Abramowitz and Stegun: *Handbook of Mathematical Functions*
 +- Wikipedia Entry: http://en.wikipedia.org/wiki/Exponential_integral
-+
-+- Online Encyclopedia of Special Function
-+  http://algo.inria.fr/esf/index.html
-+
-+- NIST Digital Library of Mathematical Functions
-+  http://dlmf.nist.gov/
-+
++- Online Encyclopedia of Special Function: http://algo.inria.fr/esf/index.html
++- NIST Digital Library of Mathematical Functions: http://dlmf.nist.gov/
 +- Maxima `special functions package`_
-+
 +- `mpmath library`_
 +
-+.. _[AS]: http://www.math.sfu.ca/~cbm/aands/
++.. [AS] 'Handbook of Mathematical Functions', Milton Abramowitz and Irene
++   A. Stegun, National Bureau of Standards Applied Mathematics Series, 55.
++   See also http://www.math.sfu.ca/~cbm/aands/.
 +.. _`special functions package`: http://maxima.sourceforge.net/docs/manual/en/maxima_15.html
 +.. _`mpmath library`: http://code.google.com/p/mpmath/
 +
@@ -98,13 +86,14 @@ new file mode 100644
 +
 +- Benjamin Jones
 +
-+    Implementations of `exp_integral_e`, `exp_integral_e1`, etc
++    Implementations of the classes ``Function_exp_integral_*``.
 +
 +- David Joyner and William Stein
 +
-+    Authors of the code which was moved from special.py and trans.py
-+    Implementation of `exp_int` (from sage/functions/special.py)
-+    Implementation of `exponential_integral_1` (from sage/functions/transcendental.py)
++    Authors of the code which was moved from special.py and trans.py.
++    Implementation of :meth:`exp_int` (from sage/functions/special.py).
++    Implementation of :meth:`exponential_integral_1` (from
++    sage/functions/transcendental.py).
 +
 +"""
 +
@@ -131,6 +120,7 @@ new file mode 100644
 +from sage.structure.parent import Parent
 +from sage.structure.coerce import parent
 +from sage.libs.mpmath import utils as mpmath_utils
++mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 +
 +from sage.rings.rational_field import RationalField
 +from sage.rings.real_mpfr import RealField
@@ -152,7 +142,7 @@ new file mode 100644
 +    for complex numbers `n` and `z`, see [AS]_ 5.1.4.
 +
 +    The special case where `n = 1` is denoted in Sage by
-+    :meth:`exponential_integral_1`.
++    ``exp_integral_e1``.
 +
 +    EXAMPLES:
 +
@@ -178,7 +168,7 @@ new file mode 100644
 +        0.00354575823814662 - 0.00973200528288687*I
 +
 +    Maxima returns the following improper integral as a multiple of
-+    exp_integral_e(1,1)::
++    ``exp_integral_e(1,1)``::
 +
 +        sage: uu = integral(e^(-x)*log(x+1),x,0,oo)
 +        sage: uu
@@ -200,7 +190,7 @@ new file mode 100644
 +        sage: f.integrate(x)
 +        Ei(-x) - gamma(-1, x)
 +
-+    Some special values of `exp_integral_e` can be simplified.
++    Some special values of ``exp_integral_e`` can be simplified.
 +    [AS]_ 5.1.23::
 +
 +        sage: f = exp_integral_e(0,x)
@@ -220,16 +210,10 @@ new file mode 100644
 +    Numerical evaluation is handled using mpmath, but symbolics are handled
 +    by Sage and Maxima.
 +
-+    REFERENCES:
-+
-+    .. _[AS] 'Handbook of Mathematical Functions', Milton Abramowitz and Irene
-+    A. Stegun, National Bureau of Standards Applied Mathematics Series, 55.
-+    See also http://www.math.sfu.ca/~cbm/aands/.
-+
 +    """
 +    def __init__(self):
 +        """
-+        See the docstring for :class:`Function_exp_integral_e`.
++        See the docstring for :meth:`Function_exp_integral_e`.
 +
 +        EXAMPLES::
 +
@@ -303,8 +287,8 @@ new file mode 100644
 +    def _derivative_(self, n, z, diff_param=None):
 +        """
 +        If `n` is an integer strictly larger than 0, then the derivative of
-+        `exp_integral_e(n,z)` with respect to `z` is
-+        `-1*exp_integral_e(n-1,z)`. See [AS], 5.1.26.
++        `E_n(z)` with respect to `z` is
++        `-E_{n-1}(z)`. See [AS]_ 5.1.26.
 +
 +        EXAMPLES::
 +
@@ -407,7 +391,7 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        return mpmath_utils.call(mpmath.e1, z, parent=parent)
++        return mpmath_utils_call(mpmath.e1, z, parent=parent)
 +
 +    def _derivative_(self, z, diff_param=None):
 +        """
@@ -432,7 +416,7 @@ new file mode 100644
 +
 +class Function_exp_integral_li(BuiltinFunction):
 +    r"""
-+    The logarithmic integral li(z) defined by
++    The logarithmic integral `\operatorname{li}(z)` defined by
 +
 +    .. math::
 +
@@ -463,7 +447,7 @@ new file mode 100644
 +
 +    Here is a test from the mpmath documentation. There are
 +    1,925,320,391,606,803,968,923 many prime numbers less than 1e23. The
-+    value of exp_integral_li(1e23) is very close to this:
++    value of ``exp_integral_li(1e23)`` is very close to this::
 +
 +        sage: exp_integral_li(1e23)
 +        1.92532039161405e21
@@ -476,14 +460,15 @@ new file mode 100644
 +    REFERENCES:
 +
 +    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
++    - mpmath documentation: `logarithmic-integral`_
 +
-+    - mpmath documentation:
-+      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
++    .. _`logarithmic-integral`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
++
 +
 +    """
 +    def __init__(self):
 +        """
-+        See the docstring for :class:`Function_exp_integral_li`.
++        See the docstring for ``Function_exp_integral_li``.
 +
 +        EXAMPLES::
 +
@@ -520,11 +505,11 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        return mpmath_utils.call(mpmath.li, z, parent=parent)
++        return mpmath_utils_call(mpmath.li, z, parent=parent)
 +
 +    def _derivative_(self, z, diff_param=None):
 +        """
-+        The derivative of li(z) is 1/log(z).
++        The derivative of `\operatorname{li}(z) is `1/log(z)`.
 +
 +        EXAMPLES::
 +
@@ -545,7 +530,7 @@ new file mode 100644
 +
 +class Function_exp_integral_si(BuiltinFunction):
 +    r"""
-+    The trigonometric integral Si(z) defined by
++    The trigonometric integral `\operatorname{Si}(z)` defined by
 +
 +    .. math::
 +
@@ -568,14 +553,15 @@ new file mode 100644
 +        sage: exp_integral_si(ComplexField(100)(3+I))
 +        2.0277151656451253616038525998 + 0.015210926166954211913653130271*I
 +
-+    The limit Si(z) as z -> infinity is pi/2::
++    The limit of `\operatorname{Si}(z)` as `z \to \infty` is `\pi/2`::
 +
 +        sage: N(exp_integral_si(1e23))
 +        1.57079632679490
 +        sage: N(pi/2)
 +        1.57079632679490
 +
-+    At 200 bits of precision Si(1e23) agrees with pi/2 up to 1e-24::
++    At 200 bits of precision `\operatorname{Si}(10^{23})` agrees with `\pi/2` up to
++    `10^{-24}`::
 +
 +        sage: exp_integral_si(RealField(200)(1e23))
 +        1.5707963267948966192313288218697837425815368604836679189519
@@ -604,22 +590,23 @@ new file mode 100644
 +        sage: integrate(sin(x)/x, x)
 +        1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x)
 +
-+    Compare values of the functions si(x) and
-+    f(x) = 1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x) - pi/2, which are both anti-derivatives of
-+    sin(x)/x, at some random positive real numbers::
++    Compare values of the functions `\operatorname{Si}(x)` and
++    `f(x) = (1/2)i \cdot \operatorname{Ei}(-ix) - (1/2)i \cdot
++    \operatorname{Ei}(ix) - \pi/2`, which are both anti-derivatives of
++    `\sin(x)/x`, at some random positive real numbers::
 +
 +        sage: f(x) = 1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x) - pi/2
 +        sage: g(x) = exp_integral_si(x)
 +        sage: R = [ abs(RDF.random_element()) for i in range(100) ]
-+        sage: all(abs(f(x) - g(x)) < 1e-12 for x in R)
++        sage: all(abs(f(x) - g(x)) < 1e-10 for x in R)
 +        True
 +
-+    The Nielsen spiral is the parametric plot of (si(t), ci(t))::
++    The Nielsen spiral is the parametric plot of (Si(t), Ci(t))::
 +
-+        sage: t=var('t')
-+        sage: f = lambda t: exp_integral_si(RDF(t))
-+        sage: g = lambda t: exp_integral_ci(RDF(t))
-+        sage: P = parametric_plot([f, g], (t, 0.5 ,20))
++        sage: x=var('x')
++        sage: f(x) = exp_integral_si(x)
++        sage: g(x) = exp_integral_ci(x)
++        sage: P = parametric_plot([f, g], (x, 0.5 ,20))
 +        sage: show(P, frame=True, axes=False)
 +
 +    ALGORITHM:
@@ -630,14 +617,14 @@ new file mode 100644
 +    REFERENCES:
 +
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
++    - mpmath documentation: `si`_
 +
-+    - mpmath documentation:
-+      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#ci
++    .. _`si`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#si
 +
 +    """
 +    def __init__(self):
 +        """
-+        See the docstring for :class:`Function_exp_integral_si`.
++        See the docstring for ``Function_exp_integral_si``.
 +
 +        EXAMPLES::
 +
@@ -677,12 +664,13 @@ new file mode 100644
 +        """
 +        EXAMPLES:
 +
-+        The limit Si(z) as z -> infinity is pi/2::
++        The limit `\operatorname{Si}(z)` as `z \to \infty`  is `\pi/2`::
 +
 +            sage: N(exp_integral_si(1e23) - pi/2)
 +            0.000000000000000
 +
-+        At 200 bits of precision Si(1e23) agrees with pi/2 up to 1e-24::
++        At 200 bits of precision `\operatorname{Si}(10^{23})` agrees with `\pi/2` up to
++        `10^{-24}`::
 +
 +            sage: exp_integral_si(RealField(200)(1e23))
 +            1.5707963267948966192313288218697837425815368604836679189519
@@ -701,16 +689,12 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        if isinstance(parent, Parent) and hasattr(parent, 'prec'):
-+            prec = parent.prec()
-+        else:
-+            prec = 53
-+        return mpmath_utils.call(mpmath.si, z, prec=prec)
++        return mpmath_utils_call(mpmath.si, z, parent=parent)
 +
 +    def _derivative_(self, z, diff_param=None):
 +        """
-+        The derivative of si(z) is sin(z)/z if z is not zero. The derivative
-+        at z = 0 is zero (but this exception is not currently implimented).
++        The derivative of `\operatorname{Si}(z)` is `\sin(z)/z` if `z` is not zero. The derivative
++        at `z = 0` is `1` (but this exception is not currently implimented).
 +
 +        EXAMPLES::
 +
@@ -731,13 +715,13 @@ new file mode 100644
 +
 +class Function_exp_integral_ci(BuiltinFunction):
 +    r"""
-+    The trigonometric integral ci(z) defined by
++    The trigonometric integral `\operatorname{Ci}(z)` defined by
 +
 +    .. math::
 +
 +        \operatorname{Ci}(z) = \gamma + \log(z) + \int_0^z \frac{\cos(t)-1}{t}\; dt,
 +
-+    where $\gamma$ is the Euler gamma constant (`euler_gamma` in Sage),
++    where `\gamma` is the Euler gamma constant (``euler_gamma`` in Sage),
 +    see [AS]_ 5.2.1.
 +
 +    EXAMPLES:
@@ -747,7 +731,7 @@ new file mode 100644
 +        sage: exp_integral_ci(3.0)
 +        0.119629786008000
 +
-+    Compare exp_integral_ci(3.0) to the definition of the value using
++    Compare ``exp_integral_ci(3.0)`` to the definition of the value using
 +    numerical integration::
 +
 +        sage: N(euler_gamma + log(3.0) + integrate((cos(x)-1)/x, x, 0, 3.0) - exp_integral_ci(3.0)) < 1e-14
@@ -760,7 +744,7 @@ new file mode 100644
 +        sage: exp_integral_ci(ComplexField(100)(3+I))
 +        0.078134230477495714401983633057 - 0.37814733904787920181190368789*I
 +
-+    The limit Ci(z) as z -> infinity is zero::
++    The limit `\operatorname{Ci}(z)` as `z \to \infty` is zero::
 +
 +        sage: N(exp_integral_ci(1e23))
 +        -3.24053937643003e-24
@@ -775,11 +759,11 @@ new file mode 100644
 +        sage: f.integrate(x)
 +        x*exp_integral_ci(x) - sin(x)
 +
-+    The Nielsen spiral is the parametric plot of (si(t), ci(t))::
++    The Nielsen spiral is the parametric plot of (Si(t), Ci(t))::
 +
 +        sage: t=var('t')
-+        sage: f = lambda t: exp_integral_si(RDF(t))
-+        sage: g = lambda t: exp_integral_ci(RDF(t))
++        sage: f(t) = exp_integral_si(t)
++        sage: g(t) = exp_integral_ci(t)
 +        sage: P = parametric_plot([f, g], (t, 0.5 ,20))
 +        sage: show(P, frame=True, axes=False)
 +
@@ -791,9 +775,9 @@ new file mode 100644
 +    REFERENCES:
 +
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
++    - mpmath documentation: `ci`_
 +
-+    - mpmath documentation:
-+      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#ci
++    .. _`ci`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#ci
 +
 +    """
 +    def __init__(self):
@@ -841,11 +825,11 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        return mpmath_utils.call(mpmath.ci, z, parent=parent)
++        return mpmath_utils_call(mpmath.ci, z, parent=parent)
 +
 +    def _derivative_(self, z, diff_param=None):
 +        """
-+        The derivative of ci(z) is cos(z)/z if z is not zero.
++        The derivative of `\operatorname{Ci}(z)` is `\cos(z)/z` if `z` is not zero.
 +
 +        EXAMPLES::
 +
@@ -866,7 +850,7 @@ new file mode 100644
 +
 +class Function_exp_integral_shi(BuiltinFunction):
 +    r"""
-+    The trigonometric integral Shi(z) defined by
++    The trigonometric integral `\operatorname{Shi}(z)` defined by
 +
 +    .. math::
 +
@@ -885,7 +869,7 @@ new file mode 100644
 +        sage: exp_integral_shi(-1.0)
 +        -1.05725087537573
 +
-+    Compare exp_integral_shi(3.0) to the definition of the value using
++    Compare ``exp_integral_shi(3.0)`` to the definition of the value using
 +    numerical integration::
 +
 +        sage: N(integrate((sinh(x))/x, x, 0, 3.0) - exp_integral_shi(3.0)) < 1e-14
@@ -898,7 +882,7 @@ new file mode 100644
 +        sage: exp_integral_shi(ComplexField(100)(3+I))
 +        3.9134623660329374406788354078 + 3.0427678212908839256360163759*I
 +
-+    The limit Shi(z) as z -> infinity is +infinity::
++    The limit `\operatorname{Shi}(z)` as `z \to \infty` is `\infty`::
 +
 +        sage: N(exp_integral_shi(Infinity))
 +        +infinity
@@ -921,14 +905,14 @@ new file mode 100644
 +    REFERENCES:
 +
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
++    - mpmath documentation: `shi`_
 +
-+    - mpmath documentation:
-+      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#shi
++    .. _`shi`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#shi
 +
 +    """
 +    def __init__(self):
 +        """
-+        See the docstring for :class:`Function_exp_integral_shi`.
++        See the docstring for ``Function_exp_integral_shi``.
 +
 +        EXAMPLES::
 +
@@ -975,11 +959,11 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        return mpmath_utils.call(mpmath.shi, z, parent=parent)
++        return mpmath_utils_call(mpmath.shi, z, parent=parent)
 +
 +    def _derivative_(self, z, diff_param=None):
 +        """
-+        The derivative of shi(z) is sinh(z)/z.
++        The derivative of `\operatorname{Shi}(z)` is `\sinh(z)/z`.
 +
 +        EXAMPLES::
 +
@@ -1000,7 +984,7 @@ new file mode 100644
 +
 +class Function_exp_integral_chi(BuiltinFunction):
 +    r"""
-+    The trigonometric integral Chi(z) defined by
++    The trigonometric integral `\operatorname{Chi}(z)` defined by
 +
 +    .. math::
 +
@@ -1017,11 +1001,11 @@ new file mode 100644
 +
 +    Here is an example from the mpmath documentation::
 +
-+        sage: f = lambda x: exp_integral_chi(RDF(x))
++        sage: f(x) = exp_integral_chi(x)
 +        sage: find_root(f, 0.1, 1.0)
 +        0.52382257138948263
 +
-+    Compare exp_integral_chi(3.0) to the definition of the value using
++    Compare ``exp_integral_chi(3.0)`` to the definition of the value using
 +    numerical integration::
 +
 +        sage: N(euler_gamma + log(3.0) + integrate((cosh(x)-1)/x, x, 0, 3.0) -
@@ -1035,7 +1019,7 @@ new file mode 100644
 +        sage: exp_integral_chi(ComplexField(100)(3+I))
 +        3.9096723099686417127843516794 + 3.0547519627014217273323873274*I
 +
-+    The limit Shi(z) as z -> infinity is +infinity::
++    The limit of `\operatorname{Chi}(z)` as `z \to \infty` is `\infty`::
 +
 +        sage: N(exp_integral_chi(Infinity))
 +        +infinity
@@ -1058,14 +1042,14 @@ new file mode 100644
 +    REFERENCES:
 +
 +    - http://en.wikipedia.org/wiki/Trigonometric_integral
++    - mpmath documentation: `chi`_
 +
-+    - mpmath documentation:
-+      http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#chi
++    .. _`chi`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#chi
 +
 +    """
 +    def __init__(self):
 +        """
-+        See the docstring for :class:`Function_exp_integral_chi`.
++        See the docstring for ``Function_exp_integral_chi``.
 +
 +        EXAMPLES::
 +
@@ -1102,11 +1086,11 @@ new file mode 100644
 +
 +        """
 +        import mpmath
-+        return mpmath_utils.call(mpmath.chi, z, parent=parent)
++        return mpmath_utils_call(mpmath.chi, z, parent=parent)
 +
 +    def _derivative_(self, z, diff_param=None):
 +        """
-+        The derivative of chi(z) is cosh(z)/z.
++        The derivative of `\operatorname{Chi}(z)` is `\cosh(z)/z`.
 +
 +        EXAMPLES::
 +
@@ -1135,8 +1119,8 @@ new file mode 100644
 +# moved here from sage/functions/special.py
 +def exp_int(t):
 +    r"""
-+    The exponential integral `\int_t^\infty e^{-x}/x dx` (t
-+    belongs to RR).  This function is deprecated - please use
++    The exponential integral `\int_t^\infty e^{-x}/x \; dx` (`t`
++    belongs to `\mathbb{R}`).  This function is deprecated - please use
 +    ``Ei`` or ``exponential_integral_1`` as needed instead.
 +
 +    EXAMPLES::
@@ -1173,6 +1157,27 @@ new file mode 100644
 +
 +    for x > 0 and for complex arguments by analytic continuation,
 +    see [AS]_ 5.1.2.
++
++    EXAMPLES::
++
++        sage: Ei(10)
++        Ei(10)
++        sage: Ei(I)
++        Ei(I)
++        sage: Ei(3+I)
++        Ei(I + 3)
++        sage: Ei(1.3)
++        2.72139888023202
++
++    The branch cut for this function is along the negative real axis::
++
++        sage: Ei(-3 + 0.1*I)
++        -0.0129379427181693 + 3.13993830250942*I
++        sage: Ei(-3 - 0.1*I)
++        -0.0129379427181693 - 3.13993830250942*I
++
++    ALGORITHM: Uses mpmath.
++
 +    """
 +    def __init__(self):
 +        """
@@ -1214,7 +1219,7 @@ new file mode 100644
 +            sage: Ei(10r)
 +            Ei(10)
 +            sage: Ei(1.3r)
-+            2.72139888023202
++            2.7213988802320235
 +        """
 +        if not isinstance(x, Expression) and is_inexact(x):
 +            return self._evalf_(x, parent(x))
@@ -1234,11 +1239,7 @@ new file mode 100644
 +            7.82313467600158 + 6.09751978399231*I
 +        """
 +        import mpmath
-+        if isinstance(parent, Parent) and hasattr(parent, 'prec'):
-+            prec = parent.prec()
-+        else:
-+            prec = 53
-+        return mpmath_utils.call(mpmath.ei, x, prec=prec)
++        return mpmath_utils_call(mpmath.ei, x, parent=parent)
 +
 +    def __call__(self, x, prec=None, coerce=True, hold=False ):
 +        """
@@ -1263,7 +1264,7 @@ new file mode 100644
 +            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.")
 +
 +            import mpmath
-+            return mpmath_utils.call(mpmath.ei, x, prec=prec)
++            return mpmath_utils_call(mpmath.ei, x, prec=prec)
 +
 +        return BuiltinFunction.__call__(self, x, coerce=coerce, hold=hold)
 +
@@ -1365,7 +1366,7 @@ diff --git a/sage/functions/other.py b/sage/functions/other.py
 diff --git a/sage/functions/special.py b/sage/functions/special.py
 --- a/sage/functions/special.py
 +++ b/sage/functions/special.py
-@@ -1721,29 +1721,6 @@
+@@ -1715,29 +1715,6 @@
          except:
              raise NotImplementedError
  
@@ -1404,9 +1405,9 @@ diff --git a/sage/functions/transcendental.py b/sage/functions/transcendental.py
  import sys
 -from sage.libs.mpmath import utils as mpmath_utils
  import  sage.libs.pari.all
- from sage.libs.pari.all import pari, PariError
+ from sage.libs.pari.all import pari
  import sage.rings.complex_field as complex_field
-@@ -42,67 +41,6 @@
+@@ -39,67 +38,6 @@
  CC = complex_field.ComplexField()
  I = CC.gen(0)
  
@@ -1474,7 +1475,7 @@ diff --git a/sage/functions/transcendental.py b/sage/functions/transcendental.py
  class Function_zeta(GinacFunction):
      def __init__(self):
          r"""
-@@ -245,137 +183,6 @@
+@@ -242,137 +180,6 @@
      return (s/2 + 1).gamma()   *    (s-1)   * (R.pi()**(-s/2))  *  s.zeta()
  
  
@@ -1612,3 +1613,103 @@ diff --git a/sage/functions/transcendental.py b/sage/functions/transcendental.py
  def Li(x, eps_rel=None, err_bound=False):
      r"""
      Return value of the function Li(x) as a real double field element.
+diff --git a/sage/interfaces/maxima_lib.py b/sage/interfaces/maxima_lib.py
+--- a/sage/interfaces/maxima_lib.py
++++ b/sage/interfaces/maxima_lib.py
+@@ -1227,7 +1227,7 @@
+     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
+     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
+     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
+-    sage.functions.other.Ei : lambda X : [[max_gamma_incomplete], 0, X]
++    sage.functions.exp_integral.Ei : lambda X : [[max_gamma_incomplete], 0, X]
+ }
+ 
+ 
+diff --git a/sage/misc/sagedoc.py b/sage/misc/sagedoc.py
+--- a/sage/misc/sagedoc.py
++++ b/sage/misc/sagedoc.py
+@@ -869,7 +869,7 @@
+     ``search_src(string, interact=False).splitlines()`` gives the
+     number of matches. ::
+ 
+-        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 8
++        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 9
+         True
+         sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+         True
+@@ -891,7 +891,7 @@
+         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
+         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
+         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
+-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 8
++        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 9
+         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
+         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
+diff --git a/sage/schemes/elliptic_curves/lseries_ell.py b/sage/schemes/elliptic_curves/lseries_ell.py
+--- a/sage/schemes/elliptic_curves/lseries_ell.py
++++ b/sage/schemes/elliptic_curves/lseries_ell.py
+@@ -9,7 +9,7 @@
+     RationalField,
+     ComplexField)
+ from math import sqrt, exp, ceil
+-import sage.functions.transcendental as transcendental
++import sage.functions.exp_integral as exp_integral
+ R = RealField()
+ Q = RationalField()
+ C = ComplexField()
+@@ -470,7 +470,7 @@
+         an = self.__E.anlist(k)           # list of C ints
+         # Compute z = e^(-2pi/sqrt(N))
+         pi = 3.14159265358979323846
+-        v = transcendental.exponential_integral_1(2*pi/sqrtN, k)
++        v = exp_integral.exponential_integral_1(2*pi/sqrtN, k)
+         L = 2*float(sum([ (v[n-1] * an[n])/n for n in xrange(1,k+1)]))
+         error = 2*exp(-2*pi*(k+1)/sqrtN)/(1-exp(-2*pi/sqrtN))
+         return R(L), R(error)
+diff --git a/sage/symbolic/random_tests.py b/sage/symbolic/random_tests.py
+--- a/sage/symbolic/random_tests.py
++++ b/sage/symbolic/random_tests.py
+@@ -14,14 +14,15 @@
+ 
+         sage: from sage.symbolic.random_tests import _mk_full_functions
+         sage: [f for (one,f,arity) in _mk_full_functions()]
+-        [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
+-        arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
+-        binomial, ceil, conjugate, cos, cosh, cot, coth, csc, csch,
+-        dickman_rho, dilog, dirac_delta, elliptic_e, elliptic_ec,
+-        elliptic_eu, elliptic_f, elliptic_kc, elliptic_pi, erf, exp,
+-        factorial, floor, heaviside, imag_part, integrate,
+-        kronecker_delta, log, polylog, real_part, sec, sech, sgn, sin,
+-        sinh, tan, tanh, unit_step, zeta, zetaderiv]
++        [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch, arcsec,
++        arcsech, arcsin, arcsinh, arctan, arctan2, arctanh, binomial, ceil,
++        conjugate, cos, cosh, cot, coth, csc, csch, dickman_rho, dilog,
++        dirac_delta, elliptic_e, elliptic_ec, elliptic_eu, elliptic_f,
++        elliptic_kc, elliptic_pi, erf, exp, exp_integral_chi, exp_integral_ci,
++        exp_integral_e, exp_integral_e1, exp_integral_li, exp_integral_shi,
++        exp_integral_si, factorial, floor, heaviside, imag_part, integrate,
++        kronecker_delta, log, polylog, real_part, sec, sech, sgn, sin, sinh,
++        tan, tanh, unit_step, zeta, zetaderiv]
+ 
+     Note that this doctest will fail whenever a Pynac function is added or
+     removed.  In that case, it is very likely that the doctests for
+@@ -234,12 +235,13 @@
+         sage: from sage.symbolic.random_tests import *
+         sage: set_random_seed(2)
+         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
+-        (euler_gamma - v3^(-e) + (v2 - factorial(-e/v2))^(((2.85879036573 - 1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 - 0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3 + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi + e)*elliptic_f(khinchin*v2, 1.4656989704 + 0.863754357069*I)
++        -v1*e^((0.0666829501658 + 0.206976992303*I)/(v3 + e))/v3 + exp_integral_si(arccot(-(v3^(-0.48519994364 - 0.485764091302*I) - polylog(-(0.700685987017 + 0.989350434299*I)/(pi*v1), -(v1 + v3 - 0.0237664220295 - 0.234827623598*I)*v1*exp_integral_shi(-elliptic_f(v1, 0.0417281846726 + 0.563674475814*I)/(pi*v3))))*v1))
+         sage: random_expr(5, verbose=True)
+-        About to apply dirac_delta to [1]
+-        About to apply arccsch to [0]
+-        About to apply <built-in function add> to [0, arccsch(0)]
+-        arccsch(0)
++        About to apply <built-in function neg> to [v1]
++        About to apply <built-in function pow> to [v1, -v1]
++        About to apply sin to [v1^(-v1)]
++        sin(v1^(-v1))
++
+     """
+     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
+     if ncoeffs is None:
