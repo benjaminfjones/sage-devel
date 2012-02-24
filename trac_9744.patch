@@ -1,0 +1,33 @@
+# HG changeset patch
+# User Michael Boratko <boratko@gmail.com>
+# Date 1321979779 18000
+# Node ID 7917a2a42baab32810519afd13d4ddb3ccd93a09
+# Parent  2921ac5c16ef8691f47fc3abcf0924f1c4242f7f
+Trac 9744: Fix for implicit_plot fill
+
+diff --git a/sage/plot/contour_plot.py b/sage/plot/contour_plot.py
+--- a/sage/plot/contour_plot.py
++++ b/sage/plot/contour_plot.py
+@@ -599,12 +599,19 @@
+         f = f.lhs() - f.rhs()
+     linewidths = options.pop('linewidth', None)
+     linestyles = options.pop('linestyle', None)
+-    
++   
+     if 'color' in options:
+         options['cmap']=[options.pop('color', None)]
+-    
++   
++    if options.pop('fill'):
++        options.pop('contours',None)
++        options.pop('cmap',None)
++        return region_plot(f<0, xrange, yrange, borderwidth=linewidths, borderstyle=linestyles, **options)
++    else:
++        return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, fill=False, **options)
++ 
+     return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
+- 
++
+ @options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None)
+ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):
+     r"""

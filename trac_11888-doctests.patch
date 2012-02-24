@@ -1,0 +1,162 @@
+# HG changeset patch
+# Parent b0c867efcf3e990324fa4b22c20166aa78f67187
+# User Keshav Kini <keshav.kini@gmail.com>
+# Date 1326194143 -28800
+
+trac #11888: fix docstring, doctests
+
+diff --git a/sage/functions/log.py b/sage/functions/log.py
+--- a/sage/functions/log.py
++++ b/sage/functions/log.py
+@@ -443,50 +443,50 @@
+ 
+ class Function_lambert_w(BuiltinFunction):
+     r"""
+-        The principle branch of the Lambert W function `W_0(z)`.
++    The principal branch of the Lambert W function `W_0(z)`.
+ 
+-        This function satisfies the equation:
++    This function satisfies the equation
+ 
+-        .. math::
++    .. math::
+ 
+-            z = W_0(z) e^{W_0(z)}
++        z = W_0(z) e^{W_0(z)}
+ 
+-        IMPUT:
++    INPUT:
+ 
+-        ``z`` - a complex number
++    - ``z`` - a complex number
+ 
+-        ALGORITHM:
++    ALGORITHM:
+ 
+-        Numerical evaluation is handled using the mpmath library.
++    Numerical evaluation is handled using the mpmath library.
+ 
+-        REFERENCES:
++    REFERENCES:
+ 
+-        http://en.wikipedia.org/wiki/Lambert_W_function
++    - http://en.wikipedia.org/wiki/Lambert_W_function
+ 
+-        EXAMPLES::
++    EXAMPLES::
+ 
+-            sage: lambert_w(1.0)
+-            0.567143290409784
+-            sage: lambert_w(-1).n()
+-            -0.318131505204764 + 1.33723570143069*I
+-            sage: lambert_w(-1.5 + 5*I)
+-            1.17418016254171 + 1.10651494102011*I
++        sage: lambert_w(1.0)
++        0.567143290409784
++        sage: lambert_w(-1).n()
++        -0.318131505204764 + 1.33723570143069*I
++        sage: lambert_w(-1.5 + 5*I)
++        1.17418016254171 + 1.10651494102011*I
+ 
+-            sage: lambert_w(RealField(100)(1))
+-            0.56714329040978387299996866221
++        sage: lambert_w(RealField(100)(1))
++        0.56714329040978387299996866221
+ 
+-            sage: S = solve(e^(5*x)+x==0, x, to_poly_solve=True)
+-            sage: z = S[0].rhs(); z
+-            -1/5*lambert_w(5)
+-            sage: N(z)
+-            -0.265344933048440
++        sage: S = solve(e^(5*x)+x==0, x, to_poly_solve=True)
++        sage: z = S[0].rhs(); z
++        -1/5*lambert_w(5)
++        sage: N(z)
++        -0.265344933048440
+ 
+-       Check the defining equation numerically at `z=5`::
++    Check the defining equation numerically at `z=5`::
+ 
+-            sage: N(lambert_w(5)*exp(lambert_w(5)) - 5)
+-            0.000000000000000
++        sage: N(lambert_w(5)*exp(lambert_w(5)) - 5)
++        0.000000000000000
++    """
+ 
+-    """
+     def __init__(self):
+         """
+         See the docstring for :meth:`Function_lambert_w`.
+diff --git a/sage/symbolic/random_tests.py b/sage/symbolic/random_tests.py
+--- a/sage/symbolic/random_tests.py
++++ b/sage/symbolic/random_tests.py
+@@ -14,14 +14,14 @@
+ 
+         sage: from sage.symbolic.random_tests import _mk_full_functions
+         sage: [f for (one,f,arity) in _mk_full_functions()]
+-        [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
+-        arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
+-        binomial, ceil, conjugate, cos, cosh, cot, coth, csc, csch,
+-        dickman_rho, dilog, dirac_delta, elliptic_e, elliptic_ec,
+-        elliptic_eu, elliptic_f, elliptic_kc, elliptic_pi, erf, exp,
+-        factorial, floor, heaviside, imag_part, integrate,
+-        kronecker_delta, log, polylog, real_part, sec, sech, sgn, sin,
+-        sinh, tan, tanh, unit_step, zeta, zetaderiv]
++        [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch, arcsec,
++        arcsech, arcsin, arcsinh, arctan, arctan2, arctanh, binomial, ceil,
++        conjugate, cos, cosh, cot, coth, csc, csch, dickman_rho, dilog,
++        dirac_delta, elliptic_e, elliptic_ec, elliptic_eu, elliptic_f,
++        elliptic_kc, elliptic_pi, erf, exp, factorial, floor, heaviside,
++        imag_part, integrate, kronecker_delta, lambert_w, log, polylog,
++        real_part, sec, sech, sgn, sin, sinh, tan, tanh, unit_step, zeta,
++        zetaderiv]
+ 
+     Note that this doctest will fail whenever a Pynac function is added or
+     removed.  In that case, it is very likely that the doctests for
+@@ -234,12 +234,41 @@
+         sage: from sage.symbolic.random_tests import *
+         sage: set_random_seed(2)
+         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
+-        (euler_gamma - v3^(-e) + (v2 - factorial(-e/v2))^(((2.85879036573 - 1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 - 0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3 + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi + e)*elliptic_f(khinchin*v2, 1.4656989704 + 0.863754357069*I)
++        -v1*elliptic_kc((0.0666829501658 + 0.206976992303*I)/(v3 + e))/v3 +
++        heaviside(arccosh(-(abs(v2 -
++        floor(-v3))^(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I,
++        -(1.21734510331 - 1.22580558833*I)*pi*v1)))*e^(arctan2(imag_part(v2) -
++        imag_part(floor(-v3)), real_part(v2) -
++        real_part(floor(-v3)))*imag_part(elliptic_e(-0.703991792631 +
++        0.750156228797*I, -(1.21734510331 -
++        1.22580558833*I)*pi*v1)))*sin(-log(abs(v2 -
++        floor(-v3)))*imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I,
++        -(1.21734510331 - 1.22580558833*I)*pi*v1)) - arctan2(imag_part(v2) -
++        imag_part(floor(-v3)), real_part(v2) -
++        real_part(floor(-v3)))*real_part(elliptic_e(-0.703991792631 +
++        0.750156228797*I, -(1.21734510331 -
++        1.22580558833*I)*pi*v1)))*imag_part(arccsc((0.891138386848 -
++        0.0936820840629*I)/v1)) - abs(v2 -
++        floor(-v3))^(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I,
++        -(1.21734510331 - 1.22580558833*I)*pi*v1)))*e^(arctan2(imag_part(v2) -
++        imag_part(floor(-v3)), real_part(v2) -
++        real_part(floor(-v3)))*imag_part(elliptic_e(-0.703991792631 +
++        0.750156228797*I, -(1.21734510331 -
++        1.22580558833*I)*pi*v1)))*cos(-log(abs(v2 -
++        floor(-v3)))*imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I,
++        -(1.21734510331 - 1.22580558833*I)*pi*v1)) - arctan2(imag_part(v2) -
++        imag_part(floor(-v3)), real_part(v2) -
++        real_part(floor(-v3)))*real_part(elliptic_e(-0.703991792631 +
++        0.750156228797*I, -(1.21734510331 -
++        1.22580558833*I)*pi*v1)))*real_part(arccsc((0.891138386848 -
++        0.0936820840629*I)/v1)) + v3^(-0.48519994364 - 0.485764091302*I) +
++        0.0909404921682*real_part(v3)/(real_part(v3)^2 + imag_part(v3)^2) +
++        0.281538203756*imag_part(v3)/(real_part(v3)^2 + imag_part(v3)^2) -
++        0.647983235144*real_part(v1) - 1.20665952957*imag_part(v1))*v1))
+         sage: random_expr(5, verbose=True)
+-        About to apply dirac_delta to [1]
+-        About to apply arccsch to [0]
+-        About to apply <built-in function add> to [0, arccsch(0)]
+-        arccsch(0)
++        About to apply <built-in function mul> to [v1, e]
++        About to apply <built-in function div> to [v1*e, 1]
++        v1*e
+     """
+     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
+     if ncoeffs is None:

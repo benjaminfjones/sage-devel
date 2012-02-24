@@ -1,0 +1,61 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1329028176 21600
+# Node ID 1c4387265b379fd5c142507b8517a822b1c5aba8
+# Parent  ca35b90a1c488ea3827deb4d96fb13ef3614f053
+Trac 8983: make erf(0) simplify automatically to 0
+
+diff --git a/sage/functions/other.py b/sage/functions/other.py
+--- a/sage/functions/other.py
++++ b/sage/functions/other.py
+@@ -26,7 +26,6 @@
+ one_half = ~SR(2)
+ 
+ class Function_erf(BuiltinFunction):
+-    _eval_ = BuiltinFunction._eval_default
+     def __init__(self):
+         r"""
+         The error function, defined for real values as
+@@ -52,6 +51,13 @@
+             sage: erf(3*I).n()
+             1.00000000000000 + 1629.86732385786*I
+ 
++        Sage simplifies erf(0) automatically::
++
++            sage: erf(0)
++            0
++            sage: solve(erf(x)==0,x)
++            [x == 0]
++
+         TESTS:
+ 
+         Test pickling::
+@@ -67,6 +73,28 @@
+         """
+         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
+ 
++    def _eval_(self, x):
++        """
++        EXAMPLES::
++
++            sage: erf(0)
++            0
++            sage: erf(x)
++            erf(x)
++        """
++        if not isinstance(x, Expression):
++            if is_inexact(x):
++                return self._evalf_(x, parent=parent(x))
++            elif x == 0:
++                return x
++            else:
++                return None
++        else:
++            if x.is_trivial_zero():
++                return x
++            else:
++                return None
++
+     def _evalf_(self, x, parent):
+         """
+         EXAMPLES::

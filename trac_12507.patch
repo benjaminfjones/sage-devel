@@ -1,0 +1,37 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1329197375 21600
+# Node ID 9da0f216b145061e2870efe45a8c1d43a1f83104
+# Parent  ca35b90a1c488ea3827deb4d96fb13ef3614f053
+Trac 12507: Mark random symbolic doctests with #random tag
+
+diff --git a/sage/symbolic/random_tests.py b/sage/symbolic/random_tests.py
+--- a/sage/symbolic/random_tests.py
++++ b/sage/symbolic/random_tests.py
+@@ -13,7 +13,7 @@
+     EXAMPLES::
+ 
+         sage: from sage.symbolic.random_tests import _mk_full_functions
+-        sage: [f for (one,f,arity) in _mk_full_functions()]
++        sage: [f for (one,f,arity) in _mk_full_functions()] # random
+         [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
+         arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
+         arg, beta, binomial, ceil, conjugate, cos, cosh, cot, coth,
+@@ -234,7 +234,7 @@
+ 
+         sage: from sage.symbolic.random_tests import *
+         sage: set_random_seed(2)
+-        sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
++        sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
+         (euler_gamma - v3^(-e) + (v2 -
+         factorial(-e/v2))^(((2.85879036573 - 1.18163393202*I)*v2 +
+         (2.85879036573 - 1.18163393202*I)*v3)*pi - 0.247786879678 +
+@@ -242,7 +242,7 @@
+         0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3
+         + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi +
+         e)*elliptic_f(khinchin*v2, 1.4656989704 + 0.863754357069*I)
+-        sage: random_expr(5, verbose=True)
++        sage: random_expr(5, verbose=True) # random
+         About to apply dirac_delta to [1]
+         About to apply arcsec to [0]
+         About to apply <built-in function add> to [0, arcsec(0)]

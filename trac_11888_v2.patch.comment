@@ -1,0 +1,5 @@
+OK, I made a second attempt. The patch isn't complete (I need to fix and add docstrings and do more testing) but if the reviewers will take a look at the basic implementation and give me feedback, I'd appreciate it.
+
+In [attachment:trac_11888_v2.patch] there is a new symbolic function  `lambert_w_branch` which takes two arguments, a complex number `z` and an integer branch `n`. This is implemented using scipy.special.lambertw for RDF/CDF arguments z and using mpmath otherwise. 
+
+There is also a wrapper function `lambert_w` that accepts either one or two arguments. For one argument it returns the principle branch `lambert_w_branch(z,0)`, for two it returns `lambert_w_branch(z,n)`.

@@ -1,0 +1,207 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1328501390 21600
+# Node ID 3c8e890562e91a479b8a71dbee088b0f14deb08e
+# Parent  eba013370ff69c553c44b2ef9f71a148c911f5a5
+Trac 11888: add the lambert_w and lambert_w_branch symbolic function
+
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -21,7 +21,7 @@
+                     real_part, real,
+                     imag_part, imag, imaginary, conjugate)
+ 
+-from log import (exp, log, ln, polylog, dilog)
++from log import (exp, log, ln, polylog, dilog, lambert_w, lambert_w_branch)
+ 
+ 
+ from transcendental import (exponential_integral_1,
+diff --git a/sage/functions/log.py b/sage/functions/log.py
+--- a/sage/functions/log.py
++++ b/sage/functions/log.py
+@@ -1,7 +1,14 @@
+ """
+ Logarithmic functions
+ """
+-from sage.symbolic.function import GinacFunction
++from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
++from sage.symbolic.pynac import symbol_table
++
++from sage.libs.mpmath import utils as mpmath_utils
++from sage.structure.coerce import parent
++from sage.symbolic.expression import Expression
++from sage.rings.real_double import RDF
++from sage.rings.complex_double import CDF
+ 
+ class Function_exp(GinacFunction):
+     def __init__(self):
+@@ -435,3 +442,168 @@
+ 
+ dilog = Function_dilog()
+ 
++
++class Function_lambert_w_branch(BuiltinFunction):
++    r"""
++    The integral branches of the Lambert W function `W_n(z)`.
++
++    This function satisfies the equation
++
++    .. math::
++
++        z = W_n(z) e^{W_n(z)}
++
++    INPUT:
++
++    - ``n`` - an integer. `n=0` corresponds to the principal branch.
++
++    - ``z`` - a complex number
++
++    ALGORITHM:
++
++    Numerical evaluation is handled using the mpmath and SciPy libraries.
++
++    REFERENCES:
++
++    - http://en.wikipedia.org/wiki/Lambert_W_function
++
++    EXAMPLES:
++
++    Evaluation of the principal branch:: 
++
++        sage: lambert_w_branch(0, 1.0)
++        0.567143290409784
++        sage: lambert_w_branch(0, -1).n()
++        -0.318131505204764 + 1.33723570143069*I
++        sage: lambert_w_branch(0, -1.5 + 5*I)
++        1.17418016254171 + 1.10651494102011*I
++
++    Evaluation of other branches::
++
++        sage: lambert_w_branch(2, 1.0)
++        -2.40158510486800 + 10.7762995161151*I
++
++    Solutions to certain exponential equations are returned in terms of lambert_w::
++
++        sage: S = solve(e^(5*x)+x==0, x, to_poly_solve=True)
++        sage: z = S[0].rhs(); z
++        -1/5*lambert_w_branch(0, 5)
++        sage: N(z)
++        -0.265344933048440
++
++    Check the defining equation numerically at `z=5`::
++
++        sage: N(lambert_w(5)*exp(lambert_w(5)) - 5)
++        0.000000000000000
++    """
++
++    def __init__(self):
++        """
++        See the docstring for :meth:`Function_lambert_w`.
++
++        EXAMPLES::
++
++            sage: lambert_w_branch(0, 1.0)
++            0.567143290409784
++
++        """
++        BuiltinFunction.__init__(self, "lambert_w_branch", nargs=2, 
++            latex_name=r'W', conversions={'mathematica':'ProductLog', 
++                                          'maple':'LambertW'})
++
++    def _eval_(self, n, z):
++        """
++        EXAMPLES::
++
++            sage: lambert_w_branch(0, 0)
++            lambert_w_branch(0, 0)
++            sage: x = var('x')
++            sage: lambert_w_branch(1, x)
++            lambert_w_branch(1, x)
++            sage: lambert_w_branch(0, 0.0)
++            0.000000000000000
++        """
++        if not isinstance(z, Expression) and is_inexact(z):
++            return self._evalf_(n, z, parent=parent(z))
++
++        return None
++
++    def _evalf_(self, n, z, parent=None):
++        """
++        EXAMPLES::
++
++            sage: N(lambert_w_branch(0, 1))
++            0.567143290409784
++            sage: lambert_w_branch(0, RealField(100)(1))
++            0.56714329040978387299996866221
++
++        SciPy is used to evaluate for RDF or CDF inputs::
++
++            sage: lambert_w_branch(0, RDF(1))
++            0.56714329041
++        """
++
++        if parent(z) == RDF or parent(z) == CDF:
++            import scipy.special
++            return scipy.special.lambertw(z, n)
++        else:
++            import mpmath
++            return mpmath_utils.call(mpmath.lambertw, z, n, parent=parent)
++
++    def _derivative_(self, n, z, diff_param=None):
++        """
++        The derivative of `W_n(x)` is `W_n(x)/(x \cdot W_n(x) + x)`.
++
++        EXAMPLES::
++
++            sage: x = var('x')
++            sage: derivative(lambert_w(x), x)
++            lambert_w_branch(0, x)/(x*lambert_w_branch(0, x) + x)
++        """
++        return lambert_w_branch(n, z)/(z*lambert_w_branch(n, z)+z)
++
++lambert_w_branch = Function_lambert_w_branch()
++
++def lambert_w(z, *args, **kwds):
++    """
++    The principal branch of the Lambert W function. This is a wrapper for 
++    lambert_w_branch(0, z).
++
++    INPUT:
++
++    - ``z`` - complex number
++
++    OUTPUT:
++
++    - The value ``W_0(z)`` of the principal branch of the lambert_w function. The output 
++      satisfies the equation
++
++    .. math::
++
++        z = W_0(z) e^{W_0(z)}
++    
++    ALGORITHM:
++
++    Numerical evaluation is handled using the mpmath and SciPy libraries.
++
++    REFERENCES:
++
++    - http://en.wikipedia.org/wiki/Lambert_W_function
++
++    EXAMPLES::
++
++        sage: lambert_w(1.0)
++        0.567143290409784
++        sage: lambert_w(2)
++        lambert_w_branch(0, 2)
++        sage: lambert_w(2).n()
++        0.852605502013726
++    """
++    if not args:
++        return lambert_w_branch(0, z, **kwds)
++    elif len(args) > 1:
++        raise ArgumentError("lambert_w takes at most two arguments.")
++    else:
++        return lambert_w_branch(args[0], z, **kwds)
++
++symbol_table['functions']['lambert_w'] = lambert_w

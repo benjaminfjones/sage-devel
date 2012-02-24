@@ -1,0 +1,271 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1326258444 18000
+# Node ID e2d1948c001a1127b1f9280d9ca08f456622c354
+# Parent  92c93226b64f933e0af00bbcbd1a8a79c444f43f
+* * *
+Trac 9130: symbolic beta function
+* * *
+trac 9130: fix segfault in sage.symbolic.pynac.py_float
+
+When the second argument of py_float() is declared as object, Cython assumes
+that this is initialized and it can do reference counting, etc. Calls to
+py_float() from pynac cannot provide a valid python object for the second
+argument. In this case pynac just passes, a NULL pointer to py_float(), which
+lead to crashes.
+
+Changing the declaration from object to PyObject* and checking for NULL fixes
+the problem.
+* * *
+Trac 9130:  beta function access with error for complex input
+* * *
+Trac 9130:  beta function --include in radom tests
+Trac 9130:  beta function--include in random tests
+* * *
+Trac 9130:  beta function--additional comments and examples
+
+diff --git a/doc/en/reference/functions.rst b/doc/en/reference/functions.rst
+--- a/doc/en/reference/functions.rst
++++ b/doc/en/reference/functions.rst
+@@ -9,7 +9,8 @@
+    sage/functions/transcendental
+    sage/functions/piecewise
+    sage/functions/orthogonal_polys
++   sage/functions/other
+    sage/functions/special
+    sage/functions/wigner
+    sage/functions/generalized
+-   sage/functions/prime_pi
+\ No newline at end of file
++   sage/functions/prime_pi
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -15,7 +15,7 @@
+ 
+ 
+ 
+-from other import ( ceil, floor, gamma, psi, factorial,
++from other import ( ceil, floor, gamma, psi, factorial, beta,
+                     abs_symbolic, erf, sqrt,
+                     gamma_inc, incomplete_gamma,
+                     real_part, real,
+diff --git a/sage/functions/other.py b/sage/functions/other.py
+--- a/sage/functions/other.py
++++ b/sage/functions/other.py
+@@ -1181,6 +1181,132 @@
+ 
+ binomial = Function_binomial()
+ 
++class Function_beta(GinacFunction):
++    def __init__(self):
++        r"""
++        Return the beta function.  This is defined by
++
++        .. math::
++
++            B(p,q) = \int_0^1 t^{p-1}(1-t)^{1-q} dt
++
++        for complex or symbolic input `p` and `q`.
++        Note that the order of inputs does not matter:  `B(p,q)=B(q,p)`.
++
++        GiNaC is used to compute `B(p,q)`.  However, complex inputs
++        are not yet handled in general.  When GiNaC raises an error on
++        such inputs, we raise a NotImplementedError.
++
++        If either input is 1, GiNaC returns the reciprocal of the
++        other.  In other cases, GiNaC uses one of the following
++        formulas:
++
++        .. math::
++
++            B(p,q) = \Gamma(p)\Gamma(q)/\Gamma(p+q)
++
++        or
++
++        .. math::
++
++            B(p,q) = (-1)^q B(1-p-q, q).
++
++
++        For numerical inputs, GiNaC uses the formula
++
++        .. math::
++
++            B(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
++
++
++        INPUT:
++
++        -  ``p`` - number or symbolic expression
++
++        -  ``q`` - number or symbolic expression
++
++
++        OUTPUT: number or symbolic expression (if input is symbolic)
++
++        EXAMPLES::
++
++            sage: beta(3,2)
++            1/12
++            sage: beta(3,1)
++            1/3
++            sage: beta(1/2,1/2)
++            beta(1/2, 1/2)
++            sage: beta(-1,1)
++            -1
++            sage: beta(-1/2,-1/2)
++            0
++            sage: beta(x/2,3)
++            beta(1/2*x, 3)
++            sage: beta(.5,.5)
++            3.14159265358979
++            sage: beta(1,2.0+I)
++            0.400000000000000 - 0.200000000000000*I
++            sage: beta(3,x+I)
++            beta(x + I, 3)
++
++        Note that the order of arguments does not matter::
++
++            sage: beta(1/2,3*x)
++            beta(3*x, 1/2)
++
++        The following fails because GiNaC does not handle general
++        complex values::
++
++            sage: beta(2,1+5*I)
++            Traceback (most recent call last):
++            ...
++            NotImplementedError: beta not implemented for complex inputs
++
++        """
++        GinacFunction.__init__(self, "beta", nargs=2,
++                conversions=dict(maxima='beta', mathematica='Beta'))
++
++    def __call__(self, p, q, prec=None, coerce=True, hold=False):
++        """
++
++        TESTS::
++
++            sage: beta(3,2)
++            1/12
++            sage: beta(3,1)
++            1/3
++            sage: beta(1/2,1/2)
++            beta(1/2, 1/2)
++            sage: beta(-1,1)
++            -1
++            sage: beta(-1/2,-1/2)
++            0
++            sage: beta(x/2,3)
++            beta(1/2*x, 3)
++            sage: beta(.5,.5)
++            3.14159265358979
++            sage: beta(1,2.0+I)
++            0.400000000000000 - 0.200000000000000*I
++            sage: beta(3,x+I)
++            beta(x + I, 3)
++            sage: beta(2,1+5*I)
++            Traceback (most recent call last):
++            ...
++            NotImplementedError: beta not implemented for complex inputs
++
++        """
++
++        try:
++            res = GinacFunction.__call__(self, p, q, coerce=coerce, hold=hold)
++        except TypeError, err:
++            if not str(err).startswith("cannot coerce"):
++                raise NotImplementedError, "beta not implemented for complex inputs"
++
++        return res
++
++
++beta = Function_beta()
++
+ def _do_sqrt(x, prec=None, extend=True, all=False):
+         r"""
+         Used internally to compute the square root of x.
+diff --git a/sage/libs/ginac/decl.pxi b/sage/libs/ginac/decl.pxi
+--- a/sage/libs/ginac/decl.pxi
++++ b/sage/libs/ginac/decl.pxi
+@@ -11,6 +11,8 @@
+ # we do *not* have to use sig_on() and sig_off(). We do use it a little
+ # in the actual pyx code to catch control-c for long running functions.
+ 
++from cpython cimport PyObject
++
+ cdef extern from "ginac_wrap.h":
+     void ginac_pyinit_Integer(object)
+     void ginac_pyinit_Float(object)
+@@ -431,7 +433,7 @@
+         object (*py_integer_from_long)(long int x) except +
+         object (*py_integer_from_python_obj)(object x) except +
+ 
+-        object (*py_float)(object a, object parent) except +
++        object (*py_float)(object a, PyObject* parent) except +
+         object (*py_RDF_from_double)(double x)
+ 
+ 
+diff --git a/sage/symbolic/pynac.pyx b/sage/symbolic/pynac.pyx
+--- a/sage/symbolic/pynac.pyx
++++ b/sage/symbolic/pynac.pyx
+@@ -1054,7 +1054,7 @@
+     """
+     return py_is_cinteger(x)
+ 
+-cdef public object py_float(object n, object parent) except +:
++cdef public object py_float(object n, PyObject* parent) except +:
+     """
+     Evaluate pynac numeric objects numerically.
+ 
+@@ -1074,7 +1074,13 @@
+         sage: type(py_float(1/2, CC))
+         <type 'sage.rings.complex_number.ComplexNumber'>
+     """
+-    return parent(n)
++    if parent is not NULL:
++        return (<object>parent)(n)
++    else:
++        try:
++            return RR(n)
++        except ValueError:
++            return CC(n)
+ 
+ def py_float_for_doctests(n, prec):
+     """
+@@ -1086,7 +1092,7 @@
+         sage: py_float_for_doctests(pi, RealField(80))
+         3.1415926535897932384626
+     """
+-    return py_float(n, prec)
++    return py_float(n, <PyObject*>prec)
+ 
+ # TODO: Optimize this
+ from sage.rings.real_double import RDF
+diff --git a/sage/symbolic/random_tests.py b/sage/symbolic/random_tests.py
+--- a/sage/symbolic/random_tests.py
++++ b/sage/symbolic/random_tests.py
+@@ -16,7 +16,7 @@
+         sage: [f for (one,f,arity) in _mk_full_functions()]
+         [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
+         arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
+-        binomial, ceil, conjugate, cos, cosh, cot, coth, csc, csch,
++        beta, binomial, ceil, conjugate, cos, cosh, cot, coth, csc, csch,
+         dickman_rho, dilog, dirac_delta, elliptic_e, elliptic_ec,
+         elliptic_eu, elliptic_f, elliptic_kc, elliptic_pi, erf, exp,
+         factorial, floor, heaviside, imag_part, integrate,
+@@ -237,9 +237,10 @@
+         (euler_gamma - v3^(-e) + (v2 - factorial(-e/v2))^(((2.85879036573 - 1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 - 0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3 + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi + e)*elliptic_f(khinchin*v2, 1.4656989704 + 0.863754357069*I)
+         sage: random_expr(5, verbose=True)
+         About to apply dirac_delta to [1]
+-        About to apply arccsch to [0]
+-        About to apply <built-in function add> to [0, arccsch(0)]
+-        arccsch(0)
++        About to apply arcsec to [0]
++        About to apply <built-in function add> to [0, arcsec(0)]
++        arcsec(0)
++
+     """
+     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
+     if ncoeffs is None:

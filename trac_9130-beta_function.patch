@@ -1,0 +1,127 @@
+# HG changeset patch
+# User Karen T. Kohl <ktkohl96@gmail.com>
+# Date 1326400728 21600
+# Node ID aa729a73616e28c3bdf89950090597856a2e61c3
+# Parent  92c93226b64f933e0af00bbcbd1a8a79c444f43f
+Trac 9130: symbolic beta function
+
+diff --git a/doc/en/reference/functions.rst b/doc/en/reference/functions.rst
+--- a/doc/en/reference/functions.rst
++++ b/doc/en/reference/functions.rst
+@@ -9,7 +9,8 @@
+    sage/functions/transcendental
+    sage/functions/piecewise
+    sage/functions/orthogonal_polys
++   sage/functions/other
+    sage/functions/special
+    sage/functions/wigner
+    sage/functions/generalized
+-   sage/functions/prime_pi
+\ No newline at end of file
++   sage/functions/prime_pi
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -15,7 +15,7 @@
+ 
+ 
+ 
+-from other import ( ceil, floor, gamma, psi, factorial,
++from other import ( ceil, floor, gamma, psi, factorial, beta,
+                     abs_symbolic, erf, sqrt,
+                     gamma_inc, incomplete_gamma,
+                     real_part, real,
+diff --git a/sage/functions/other.py b/sage/functions/other.py
+--- a/sage/functions/other.py
++++ b/sage/functions/other.py
+@@ -1181,6 +1181,90 @@
+ 
+ binomial = Function_binomial()
+ 
++class Function_beta(GinacFunction):
++    def __init__(self):
++        r"""
++        Return the beta function.  This is defined by
++
++        .. math::
++
++            B(p,q) = \int_0^1 t^{p-1}(1-t)^{1-q} dt
++
++        for complex or symbolic input `p` and `q`.
++        Note that the order of inputs does not matter:  `B(p,q)=B(q,p)`.
++
++        GiNaC is used to compute `B(p,q)`.  However, complex inputs
++        are not yet handled in general.  When GiNaC raises an error on
++        such inputs, we raise a NotImplementedError.
++
++        If either input is 1, GiNaC returns the reciprocal of the
++        other.  In other cases, GiNaC uses one of the following
++        formulas:
++
++        .. math::
++
++            B(p,q) = \Gamma(p)\Gamma(q)/\Gamma(p+q)
++
++        or
++
++        .. math::
++
++            B(p,q) = (-1)^q B(1-p-q, q).
++
++
++        For numerical inputs, GiNaC uses the formula
++
++        .. math::
++
++            B(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
++
++
++        INPUT:
++
++        -  ``p`` - number or symbolic expression
++
++        -  ``q`` - number or symbolic expression
++
++
++        OUTPUT: number or symbolic expression (if input is symbolic)
++
++        EXAMPLES::
++
++            sage: beta(3,2)
++            1/12
++            sage: beta(3,1)
++            1/3
++            sage: beta(1/2,1/2)
++            beta(1/2, 1/2)
++            sage: beta(-1,1)
++            -1
++            sage: beta(-1/2,-1/2)
++            0
++            sage: beta(x/2,3)
++            beta(1/2*x, 3)
++            sage: beta(.5,.5)
++            3.14159265358979
++            sage: beta(1,2.0+I)
++            0.400000000000000 - 0.200000000000000*I
++            sage: beta(3,x+I)
++            beta(x + I, 3)
++
++        Note that the order of arguments does not matter::
++
++            sage: beta(1/2,3*x)
++            beta(3*x, 1/2)
++
++        The following must be fixed to remain symbolic::
++
++            sage: beta(2,1+5*I)
++            -0.0305039787798408 - 0.0198938992042440*I
++
++        """
++        GinacFunction.__init__(self, "beta", nargs=2,
++                conversions=dict(maxima='beta', mathematica='Beta'))
++
++beta = Function_beta()
++
+ def _do_sqrt(x, prec=None, extend=True, all=False):
+         r"""
+         Used internally to compute the square root of x.

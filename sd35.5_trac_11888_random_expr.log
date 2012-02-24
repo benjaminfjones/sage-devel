@@ -1,0 +1,220 @@
+----------------------------------------------------------------------
+| Sage Version 4.8.alpha6, Release Date: 2012-01-01                  |
+| Type notebook() for the GUI, and license() for information.        |
+----------------------------------------------------------------------
+**********************************************************************
+*                                                                    *
+* Warning: this is a prerelease version, and it may be unstable.     *
+*                                                                    *
+**********************************************************************
+Loading Sage library. Current Mercurial branch is: sd355
+sage: from sage.symbolic.random_tests import *
+sage: set_random_seed(2)
+sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
+-v1*elliptic_kc((0.0666829501658 + 0.206976992303*I)/(v3 + e))/v3 + heaviside(arccosh((abs(v2 - floor(-v3))^(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1)))*real_part(arccsc((0.891138386848 - 0.0936820840629*I)/v1))*e^(imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))))*cos(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))) - imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*log(abs(v2 - floor(-v3)))) - abs(v2 - floor(-v3))^(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1)))*imag_part(arccsc((0.891138386848 - 0.0936820840629*I)/v1))*e^(imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))))*sin(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))) - imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*log(abs(v2 - floor(-v3)))) - v3^(-0.48519994364 - 0.485764091302*I) - 0.0909404921682*real_part(v3)/(real_part(v3)^2 + imag_part(v3)^2) - 0.281538203756*imag_part(v3)/(real_part(v3)^2 + imag_part(v3)^2) + 0.647983235144*real_part(v1) + 1.20665952957*imag_part(v1))*v1))
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element)
+sage: z
+(v3 + arctan2(v2^(-(0.0776925055357 + 0.200161614601*I)/v2), sec(v1^v2)/v1))*v3*elliptic_e(arcsec(-(1/v1 + 0.192311335666 - 0.290918138175*I)*(-pi - v1)^(0.0459394173063 - 0.226774317251*I)), dilog(arctanh(-ceil((v1 + 0.900381288472 + 0.180779661038*I)*arctanh((catalan + v2)*e^(-1))))))/sqrt(-(v3 + arctan2(v2^(-(0.0776925055357 + 0.200161614601*I)/v2), sec(v1^v2)/v1))^2 + 1)
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element)
+sage: z
+(v3 - 0.548970786217 - 0.193882497729*I)*(v1 - arctanh((0.2071298137 + 0.0463340597171*I)/v1))*v2^v2*erf(v3) - (khinchin + v2)*(pi + pi*v1 + 0.258356711116 + 0.234177995326*I)^(-(-(0.980149701635 + 0.369754957906*I)/v1 + 0.418864209851 + 0.268343502168*I)*pi^v3*arccoth(v3/v1))
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element)
+sage: z
+sec((v2 + v3)*binomial(-v1 + 1/v2, -1/(cosh(khinchin/arcsech(v1) - 0.434977384807 + 0.781520844727*I) - 0.543735218337 - 0.976925288497*I))/log2 - v2/v1 - arccos(-(1.67933292576 - 1.02324206233*I)*(v2 - 0.700097236006 - 0.197048913449*I)*v3/((pi + pi^(-0.434977384807 + 0.781520844727*I))*v1*lambert_w(v2^(-0.700097236006 - 0.197048913449*I)))))
+sage: set_random_seed(3)
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); z
+-arctan2((1/zetaderiv(-(0.632742322203 - 0.622609135518*I)*csc(arctanh(heaviside(2*v1 + e))), -(1.77686355038 - 1.42508915071*I)*e))^((0.632742322203 - 0.622609135518*I)*v2 + v3 - 0.150030479103 + 0.712524192648*I), polylog(cos((pi^2 - arccsc(v1))/arccsch((-catalan - v3)^polylog(pi, v1))), -(v1 + 1.33977464805 - 1.42470297601*I)/v1))
+sage: set_random_seed(2)
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); z
+-v1*elliptic_kc((0.0666829501658 + 0.206976992303*I)/(v3 + e))/v3 + heaviside(arccosh((abs(v2 - floor(-v3))^(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1)))*real_part(arccsc((0.891138386848 - 0.0936820840629*I)/v1))*e^(imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))))*cos(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))) - imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*log(abs(v2 - floor(-v3)))) - abs(v2 - floor(-v3))^(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1)))*imag_part(arccsc((0.891138386848 - 0.0936820840629*I)/v1))*e^(imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))))*sin(-real_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*arctan2(imag_part(v2) - imag_part(floor(-v3)), real_part(v2) - real_part(floor(-v3))) - imag_part(elliptic_e(-0.703991792631 + 0.750156228797*I, -(1.21734510331 - 1.22580558833*I)*pi*v1))*log(abs(v2 - floor(-v3)))) - v3^(-0.48519994364 - 0.485764091302*I) - 0.0909404921682*real_part(v3)/(real_part(v3)^2 + imag_part(v3)^2) - 0.281538203756*imag_part(v3)/(real_part(v3)^2 + imag_part(v3)^2) + 0.647983235144*real_part(v1) + 1.20665952957*imag_part(v1))*v1))
+sage: set_random_seed(1)
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); z
+(v1^(0.97134084277 + 0.195868299334*I)/coth(-pi + v1^2 + v3) + sech(-(v3 - 1.16974039687 + 1.76957865538*I)*(catalan^arccsch(v1) + (0.858674272236 - 0.625967711987*I)*v2)*pi*v2 + 1/(v1*elliptic_kc(v3 + 0.982759757946 - 0.0352136502348*I)) + arctanh(1/arccot(v1^pi))))/v2
+sage: set_random_seed(20)
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); z
+-(e^(heaviside(-(0.17089577366 + 0.380178061071*I)*v2))*elliptic_pi(v3, pi, -0.92381282298 + 0.0327157583796*I))^(v1*v2*v3*elliptic_pi(0.484874914244 - 0.0499299401583*I, -0.48779914795 - 0.560971675562*I, v1)) + v3/v2 - cos(-(v3 - e)*erf(-0.880502229111 - 0.779127739548*I)/((0.651465748611 - 0.10579224643*I)*sec(-(0.543177630352 + 0.418532572362*I)*v3) - 0.161438247832 + 0.338091484058*I)) + sec((e - 0.984883515303 - 0.0756496091877*I)*e^(-1))
+sage: set_random_seed(123)
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); z
+coth((0.468546824856 - 0.17062475137*I)*conjugate(v1)/(conjugate(((0.787292811867 - 0.600267318979*I)*v3)^sgn(v1 - v3))*conjugate(ceil(0.900237198862 + 0.600505134665*I))*lambert_w(e^((e*cos(0.496382538957*log(pi))/pi^0.695374927401 + (1.72989765333 + 0.182571802061*I)/(twinprime*v3) - real_part(elliptic_pi(-0.129406514234 + 0.778164276395*I, pi, v1)))*(pi - v2 - (0.876083167758 - 0.14651172296*I)/v1)))))
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+283
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+512
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+486
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+405
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+267
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+231
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+303
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+291
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+235
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+291
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/devel/sage-sd355/<ipython console> in <module>()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr(size, nvars, ncoeffs, var_frac, internal, nullary, nullary_frac, coeff_generator, verbose)
+    278     leaves = normalize_prob_list(leaves)
+    279 
+    280     internal = normalize_prob_list(internal)
+    281 
+--> 282     return random_expr_helper(size, internal, leaves, verbose)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+--> 209         return r[1](*children)
+    210 
+    211 def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_internal, nullary=full_nullary, nullary_frac=0.2, coeff_generator=QQ.random_element, verbose=False):
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/rings/complex_double.so in sage.rings.complex_double.ComplexDoubleElement.__pow__ (sage/rings/complex_double.c:9647)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/rings/complex_double.so in sage.rings.complex_double.ComplexDoubleField_class.__call__ (sage/rings/complex_double.c:3821)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/structure/parent.so in sage.structure.parent.Parent.__call__ (sage/structure/parent.c:7355)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/structure/coerce_maps.so in sage.structure.coerce_maps.DefaultConvertMap_unique._call_ (sage/structure/coerce_maps.c:3311)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/structure/coerce_maps.so in sage.structure.coerce_maps.DefaultConvertMap_unique._call_ (sage/structure/coerce_maps.c:3214)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/rings/complex_double.so in sage.rings.complex_double.ComplexDoubleField_class._element_constructor_ (sage/rings/complex_double.c:4246)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/expression.so in sage.symbolic.expression.Expression._complex_double_ (sage/symbolic/expression.cpp:5568)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/expression.so in sage.symbolic.expression.Expression._eval_self (sage/symbolic/expression.cpp:4936)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/functions/hyperbolic.pyc in _evalf_(self, x, parent)
+     66         if parent is float:
+     67             return self._evalf_float(x)
+---> 68         return getattr(x, self.name())()
+     69     
+     70 class Function_sinh(GinacFunction):
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/structure/element.so in sage.structure.element.Element.__getattr__ (sage/structure/element.c:2856)()
+
+AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'arccoth'
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+290
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+290
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/devel/sage-sd355/<ipython console> in <module>()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr(size, nvars, ncoeffs, var_frac, internal, nullary, nullary_frac, coeff_generator, verbose)
+    278     leaves = normalize_prob_list(leaves)
+    279 
+    280     internal = normalize_prob_list(internal)
+    281 
+--> 282     return random_expr_helper(size, internal, leaves, verbose)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    204             n_spare_nodes = 0
+    205         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
+--> 206         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/random_tests.pyc in random_expr_helper(n_nodes, internal, leaves, verbose)
+    207         if verbose:
+    208             print "About to apply %r to %r" % (r[1], children)
+--> 209         return r[1](*children)
+    210 
+    211 def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_internal, nullary=full_nullary, nullary_frac=0.2, coeff_generator=QQ.random_element, verbose=False):
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/function.so in sage.symbolic.function.Function.__call__ (sage/symbolic/function.cpp:4562)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/symbolic/integration/integral.pyc in _eval_(self, f, x, a, b)
+    159         # Check for x
+    160         if not is_SymbolicVariable(x):
+--> 161             if len(x.variables()) == 1:
+    162                 nx = x.variables()[0]
+    163                 f = f*x.diff(nx)
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/structure/element.so in sage.structure.element.Element.__getattr__ (sage/structure/element.c:2884)()
+
+/Users/jonesbe/sage/sage-4.8.alpha6/local/lib/python2.6/site-packages/sage/structure/parent.so in sage.structure.parent.getattr_from_other_class (sage/structure/parent.c:3236)()
+
+AttributeError: 'sage.rings.complex_double.ComplexDoubleElement' object has no attribute 'variables'
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+297
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+346
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+331
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+292
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+333
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+339
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+282
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+488
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+279
+sage: z = random_expr(50, nvars=3, coeff_generator=CDF.random_element); len(str(z))
+2597
+sage: z
+(0.769749751327 - 0.862301530294*I)*v2^twinprime - 0.135463721643*1.88077867926^real_part(v1)*real_part(v1)*real_part(v3)*e^(0.107740689407*imag_part(v1) + 0.0876182208381)*sin(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)/(0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*sin(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2 + 0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*cos(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2) + 0.135463721643*1.88077867926^real_part(v1)*real_part(v1)*imag_part(v3)*e^(0.107740689407*imag_part(v1) + 0.0876182208381)*cos(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)/(0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*sin(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2 + 0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*cos(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2) + 0.135463721643*1.88077867926^real_part(v1)*real_part(v3)*imag_part(v1)*e^(0.107740689407*imag_part(v1) + 0.0876182208381)*cos(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)/(0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*sin(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2 + 0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*cos(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2) + 0.135463721643*1.88077867926^real_part(v1)*imag_part(v1)*imag_part(v3)*e^(0.107740689407*imag_part(v1) + 0.0876182208381)*sin(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)/(0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*sin(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2 + 0.0183504198814*(1.88077867926^real_part(v1))^2*e^(0.215481378813*imag_part(v1) + 0.175236441676)*cos(-0.107740689407*real_part(v1) + 0.631685882183*imag_part(v1) + 0.854666735922)^2) + 1.77379989107*pi*e^(-1) + real_part(v1)*imag_part(v2) + real_part(v2)*imag_part(v1) - real_part(v2)*imag_part(v3) - real_part(v3)*imag_part(v2) - imag_part(v3) - imag_part(zeta(-(0.698605659144 + 0.735456393006*I)*v3/((v1 - v3)*mertens)))

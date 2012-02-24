@@ -1,0 +1,37 @@
+# HG changeset patch
+# User Burcin Erocal <burcin@erocal.org>
+# Date 1308269201 -7200
+# Node ID 3d440703896e4be15ba1d94dcaec12e3207fc811
+# Parent  df5620969fbddef0cf191407d046c2ed522d6a49
+[mq]: trac_11513-is_numerically_zero.patch
+
+diff --git a/sage/symbolic/expression.pyx b/sage/symbolic/expression.pyx
+--- a/sage/symbolic/expression.pyx
++++ b/sage/symbolic/expression.pyx
+@@ -1680,6 +1680,26 @@
+ 
+     rhs = right = right_hand_side
+ 
++    def _is_numerically_zero(self):
++        """
++        Provides a fast way to check if this expression is zero.
++
++        EXAMPLES::
++
++            sage: x._is_numerically_zero()
++            False
++            sage: SR(0)._is_numerically_zero()
++            True
++        """
++        from sage.rings.all import CIF
++        try:
++            approx_self = CIF(self)
++            if bool(approx_self.imag() == 0) and bool(approx_self.real() == 0):
++                return True
++        except:
++            pass
++        return False
++
+     def __nonzero__(self):
+         """
+         Return True unless this symbolic expression can be shown by Sage

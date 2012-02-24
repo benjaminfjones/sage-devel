@@ -1,0 +1,270 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1328501390 21600
+# Node ID 8dce01b3732625ea69fba25b5887c73a97ebeb55
+# Parent  7f21a9a76fab333da15bf01dd9fc5972816d4894
+Trac 11888: add the lambert_w symbolic function
+
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -21,7 +21,7 @@
+                     arg, real_part, real,
+                     imag_part, imag, imaginary, conjugate)
+ 
+-from log import (exp, log, ln, polylog, dilog)
++from log import (exp, log, ln, polylog, dilog, lambert_w)
+ 
+ 
+ from transcendental import (exponential_integral_1,
+diff --git a/sage/functions/log.py b/sage/functions/log.py
+--- a/sage/functions/log.py
++++ b/sage/functions/log.py
+@@ -1,7 +1,16 @@
+ """
+ Logarithmic functions
+ """
+-from sage.symbolic.function import GinacFunction
++from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
++from sage.symbolic.pynac import symbol_table
++from sage.symbolic.constants import e as const_e
++
++from sage.libs.mpmath import utils as mpmath_utils
++from sage.structure.coerce import parent as sage_structure_coerce_parent
++from sage.symbolic.expression import Expression
++from sage.rings.real_double import RDF
++from sage.rings.complex_double import CDF
++from sage.rings.all import Integer
+ 
+ class Function_exp(GinacFunction):
+     def __init__(self):
+@@ -429,9 +438,228 @@
+             dilog(-1/2*I)
+             sage: conjugate(dilog(2))
+             conjugate(dilog(2))
+-        """        
++        """
+         GinacFunction.__init__(self, 'dilog',
+                 conversions=dict(maxima='li[2]'))
+ 
+ dilog = Function_dilog()
+ 
++
++class Function_lambert_w(BuiltinFunction):
++    r"""
++    The integral branches of the Lambert W function `W_n(z)`.
++
++    This function satisfies the equation
++
++    .. math::
++
++        z = W_n(z) e^{W_n(z)}
++
++    INPUT:
++
++    - ``n`` - an integer. `n=0` corresponds to the principal branch.
++
++    - ``z`` - a complex number
++
++    If called with a single argument, that argument is ``z`` and the branch ``n`` is
++    assumed to be 0 (the principal branch).
++
++    ALGORITHM:
++
++    Numerical evaluation is handled using the mpmath and SciPy libraries.
++
++    REFERENCES:
++
++    - http://en.wikipedia.org/wiki/Lambert_W_function
++
++    EXAMPLES:
++
++    Evaluation of the principal branch::
++
++        sage: lambert_w(1.0)
++        0.567143290409784
++        sage: lambert_w(-1).n()
++        -0.318131505204764 + 1.33723570143069*I
++        sage: lambert_w(-1.5 + 5*I)
++        1.17418016254171 + 1.10651494102011*I
++
++    Evaluation of other branches::
++
++        sage: lambert_w(2, 1.0)
++        -2.40158510486800 + 10.7762995161151*I
++
++    Solutions to certain exponential equations are returned in terms of lambert_w::
++
++        sage: S = solve(e^(5*x)+x==0, x, to_poly_solve=True)
++        sage: z = S[0].rhs(); z
++        -1/5*lambert_w(5)
++        sage: N(z)
++        -0.265344933048440
++
++    Check the defining equation numerically at `z=5`::
++
++        sage: N(lambert_w(5)*exp(lambert_w(5)) - 5)
++        0.000000000000000
++
++    There are several special values of the principal branch which
++    are automatically simplified::
++
++            sage: lambert_w(0)
++            0
++            sage: lambert_w(e)
++            1
++            sage: lambert_w(-1/e)
++            -1
++    """
++
++    def __init__(self):
++        r"""
++        See the docstring for :meth:`Function_lambert_w`.
++
++        EXAMPLES::
++
++            sage: lambert_w(0, 1.0)
++            0.567143290409784
++        """
++        BuiltinFunction.__init__(self, "lambert_w", nargs=2, 
++                                 conversions={'maxima':'lambert_w',
++                                              'mathematica':'ProductLog', 
++                                              'maple':'LambertW'})
++        self._simplifications = {Integer(0):Integer(0), const_e:Integer(1),
++                                 -1/const_e:Integer(-1)}
++
++    def __call__(self, *args, **kwds):
++        r"""
++        Custom call method allows the user to pass one argument or two. If
++        one argument is passed, we assume it is ``z`` and that ``n=0``.
++
++        EXAMPLES::
++
++            sage: lambert_w(1)
++            lambert_w(1)
++            sage: lambert_w(1, 2)
++            lambert_w(1, 2)
++        """
++        if len(args) == 2:
++            return BuiltinFunction.__call__(self, *args, **kwds)
++        elif len(args) == 1:
++            return BuiltinFunction.__call__(self, 0, args[0], **kwds)
++        else:
++            raise TypeError("lambert_w takes either one or two arguments.")
++
++    def _eval_(self, n, z):
++        """
++        EXAMPLES::
++
++            sage: lambert_w(6.0)
++            1.43240477589830
++            sage: lambert_w(1)
++            lambert_w(1)
++            sage: lambert_w(x+1)
++            lambert_w(x + 1)
++
++        There are three special values which are automatically simplified::
++
++            sage: lambert_w(0)
++            0
++            sage: lambert_w(e)
++            1
++            sage: lambert_w(-1/e)
++            -1
++            sage: lambert_w(SR(-1/e))
++            -1
++            sage: lambert_w(SR(0))   
++            0
++
++        The special values only hold on the principal branch::
++
++            sage: lambert_w(1,e)
++            lambert_w(1, e)
++            sage: lambert_w(1, e.n())
++            -0.532092121986380 + 4.59715801330257*I
++        """
++        if not isinstance(z, Expression): 
++            if is_inexact(z): 
++                return self._evalf_(n, z, parent=sage_structure_coerce_parent(z))
++            elif z == Integer(0):
++                return Integer(0)
++        elif n == 0:
++            if z.is_trivial_zero(): 
++                return Integer(0)
++            elif (z-const_e).is_trivial_zero():
++                return Integer(1)
++            elif (z+1/const_e).is_trivial_zero():
++                return Integer(-1)
++        return None 
++
++    def _evalf_(self, n, z, parent=None):
++        """
++        EXAMPLES::
++
++            sage: N(lambert_w(1))
++            0.567143290409784
++            sage: lambert_w(RealField(100)(1))
++            0.56714329040978387299996866221
++
++        SciPy is used to evaluate for float, RDF, and CDF inputs::
++
++            sage: lambert_w(RDF(1))
++            0.56714329041
++        """
++        R = parent or sage_structure_coerce_parent(z)
++        if R is float or R is complex or R is RDF or R is CDF:
++            import scipy.special
++            return scipy.special.lambertw(z, n)
++        else:
++            import mpmath
++            return mpmath_utils.call(mpmath.lambertw, z, n, parent=R)
++
++    def _derivative_(self, n, z, diff_param=None):
++        """
++        The derivative of `W_n(x)` is `W_n(x)/(x \cdot W_n(x) + x)`.
++
++        EXAMPLES::
++
++            sage: x = var('x')
++            sage: derivative(lambert_w(x), x)
++            lambert_w(x)/(x*lambert_w(x) + x)
++        """
++        return lambert_w(n, z)/(z*lambert_w(n, z)+z)
++
++    def _print_(self, n, z):
++        """
++        Custom _print_ method to avoid printing the branch number if
++        it is zero.
++
++        EXAMPLES::
++
++            sage: lambert_w(1)
++            lambert_w(1)
++            sage: lambert_w(0,x)
++            lambert_w(x)
++        """
++        if n == 0:
++            return "lambert_w(%s)" % z
++        else:
++            return "lambert_w(%s, %s)" % (n,z)
++
++    def _print_latex_(self, n, z):
++        """
++        Custom _print_latex_ method to avoid printing the branch
++        number if it is zero.
++
++        EXAMPLES::
++
++            sage: latex(lambert_w(1))
++            \operatorname{W_0}(1)
++            sage: latex(lambert_w(0,x))
++            \operatorname{W_0}(x)
++            sage: latex(lambert_w(1,x))
++            \operatorname{W_{1}}(x)
++        """
++        if n == 0:
++            return r"\operatorname{W_0}(%s)" % z
++        else:
++            return r"\operatorname{W_{%s}}(%s)" % (n,z)
++
++lambert_w = Function_lambert_w()

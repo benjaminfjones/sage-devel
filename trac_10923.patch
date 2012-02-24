@@ -1,0 +1,30 @@
+# HG changeset patch
+# User Michael Orlitzky <michael@orlitzky.com>
+# Date 1326143210 18000
+# Node ID 58f78d3bc0572ce16caa2c9e9b5a3e7c90e37227
+# Parent  92c93226b64f933e0af00bbcbd1a8a79c444f43f
+Trac #10923: Add a doctest for an integration error with <maxima-5.24.
+
+diff --git a/sage/symbolic/integration/integral.py b/sage/symbolic/integration/integral.py
+--- a/sage/symbolic/integration/integral.py
++++ b/sage/symbolic/integration/integral.py
+@@ -574,6 +574,19 @@
+ 
+         sage: integrate(sin(x)*sin(x/3)/x^2, x, 0, oo)
+         1/6*pi
++
++    Maxima returned a negative value for this integral prior to
++    maxima-5.24 (trac #10923). Ideally we would get an answer in terms
++    of the gamma function; however, we get something equivalent::
++
++        sage: actual_result = integral(e^(-1/x^2), x, 0, 1)
++        sage: actual_result.full_simplify()
++        ((e*erf(1) - e)*sqrt(pi) + 1)*e^(-1)
++        sage: ideal_result = 1/2*gamma(-1/2, 1)
++        sage: error = actual_result - ideal_result
++        sage: error.numerical_approx() # abs tol 10e-10
++        0
++
+     """
+     if isinstance(v, (list, tuple)) and a is None and b is None:
+         if len(v)==1: # bare variable in a tuple

@@ -1,0 +1,49 @@
+# HG changeset patch
+# User Michael Boratko <boratko@gmail.com>
+# Date 1321979779 18000
+# Node ID 8222f2e43f51148b63c70179abb4e9a5790f625e
+# Parent  eba013370ff69c553c44b2ef9f71a148c911f5a5
+Trac 9744: Fix for implicit_plot fill
+
+diff --git a/sage/plot/contour_plot.py b/sage/plot/contour_plot.py
+--- a/sage/plot/contour_plot.py
++++ b/sage/plot/contour_plot.py
+@@ -599,6 +599,12 @@
+     ::
+ 
+         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50)
++
++    When making a filled implicit plot using a python function rather than a 
++    symbolic expression the user should increase the number of plot points to
++    avoid artefacts::
++
++        sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3), fill=True, plot_points=500)
+     """
+     from sage.symbolic.expression import is_SymbolicEquation
+     if is_SymbolicEquation(f):
+@@ -607,12 +613,21 @@
+         f = f.lhs() - f.rhs()
+     linewidths = options.pop('linewidth', None)
+     linestyles = options.pop('linestyle', None)
+-    
++   
+     if 'color' in options:
+         options['cmap']=[options.pop('color', None)]
+-    
+-    return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
+- 
++   
++    if options.pop('fill'):
++        options.pop('contours',None)
++        options.pop('cmap',None)
++        from sage.symbolic.expression import is_Expression
++        if not is_Expression(f):
++            return region_plot(lambda x,y: f(x,y)<0, xrange, yrange, borderwidth=linewidths, borderstyle=linestyles, **options)
++        else:
++            return region_plot(f<0, xrange, yrange, borderwidth=linewidths, borderstyle=linestyles, **options)
++    return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, fill=False, **options)
++
++
+ @options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None)
+ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):
+     r"""

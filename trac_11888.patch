@@ -1,0 +1,146 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1326163188 18000
+# Node ID 3321434bbf8b1fcca0efa3ec726f85659fac6fef
+# Parent  92c93226b64f933e0af00bbcbd1a8a79c444f43f
+Trac 11888: add the lambert_w symbolic function
+
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -21,7 +21,7 @@
+                     real_part, real,
+                     imag_part, imag, imaginary, conjugate)
+ 
+-from log import (exp, log, ln, polylog, dilog)
++from log import (exp, log, ln, polylog, dilog, lambert_w)
+ 
+ 
+ from transcendental import (exponential_integral_1,
+diff --git a/sage/functions/log.py b/sage/functions/log.py
+--- a/sage/functions/log.py
++++ b/sage/functions/log.py
+@@ -1,7 +1,12 @@
+ """
+ Logarithmic functions
+ """
+-from sage.symbolic.function import GinacFunction
++from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
++
++from sage.libs.mpmath import utils as mpmath_utils
++from sage.structure.coerce import parent
++from sage.symbolic.expression import Expression
++
+ 
+ class Function_exp(GinacFunction):
+     def __init__(self):
+@@ -435,3 +440,109 @@
+ 
+ dilog = Function_dilog()
+ 
++
++class Function_lambert_w(BuiltinFunction):
++    r"""
++        The principle branch of the Lambert W function `W_0(z)`.
++
++        This function satisfies the equation:
++
++        .. math::
++
++            z = W_0(z) e^{W_0(z)}
++
++        IMPUT:
++
++        ``z`` - a complex number
++
++        ALGORITHM:
++
++        Numerical evaluation is handled using the mpmath library.
++
++        REFERENCES:
++
++        http://en.wikipedia.org/wiki/Lambert_W_function
++
++        EXAMPLES::
++
++            sage: lambert_w(1.0)
++            0.567143290409784
++            sage: lambert_w(-1).n()
++            -0.318131505204764 + 1.33723570143069*I
++            sage: lambert_w(-1.5 + 5*I)
++            1.17418016254171 + 1.10651494102011*I
++
++            sage: lambert_w(RealField(100)(1))
++            0.56714329040978387299996866221
++
++            sage: S = solve(e^(5*x)+x==0, x, to_poly_solve=True)
++            sage: z = S[0].rhs(); z
++            -1/5*lambert_w(5)
++            sage: N(z)
++            -0.265344933048440
++
++       Check the defining equation numerically at `z=5`::
++
++            sage: N(lambert_w(5)*exp(lambert_w(5)) - 5)
++            0.000000000000000
++
++    """
++    def __init__(self):
++        """
++        See the docstring for :meth:`Function_lambert_w`.
++
++        EXAMPLES::
++
++            sage: lambert_w(1.0)
++            0.567143290409784
++
++        """
++        BuiltinFunction.__init__(self, "lambert_w", nargs=1, latex_name=r'W_0',
++                                 conversions=dict(maxima='lambert_w'))
++
++    def _eval_(self, z):
++        """
++        EXAMPLES::
++
++            sage: lambert_w(0)
++            lambert_w(0)
++            sage: x = var('x')
++            sage: lambert_w(x)
++            lambert_w(x)
++            sage: lambert_w(0.0)
++            0.000000000000000
++
++        """
++        if not isinstance(z, Expression) and is_inexact(z):
++            return self._evalf_(z, parent(z))
++
++        return None
++
++    def _evalf_(self, z, parent=None):
++        """
++        EXAMPLES::
++
++            sage: N(lambert_w(1))
++            0.567143290409784
++            sage: lambert_w(RealField(100)(1))
++            0.56714329040978387299996866221
++
++        """
++        import mpmath
++        return mpmath_utils.call(mpmath.lambertw, z, parent=parent)
++
++    def _derivative_(self, z, diff_param=None):
++        """
++        The derivative of `W_0(x)` is `W_0(x)/(x \cdot W_0(x) + x)`.
++
++        EXAMPLES::
++
++            sage: x = var('x')
++            sage: derivative(lambert_w(x), x)
++            lambert_w(x)/(x*lambert_w(x) + x)
++
++        """
++        return lambert_w(z)/(z*lambert_w(z)+z)
++
++lambert_w = Function_lambert_w()
++
