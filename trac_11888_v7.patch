@@ -125,8 +125,8 @@ diff --git a/sage/functions/log.py b/sage/functions/log.py
 +        sage: integrate(lambert_w(x), x, 0, 1.0)
 +        0.330366124762
 +
-+    Warning: The integral of the non-principle branch is not implemented, 
-+    neither is numerical integration using GSL. The :meth:`numerical_integral` 
++    Warning: The integral of the non-principle branch is not implemented,
++    neither is numerical integration using GSL. The :meth:`numerical_integral`
 +    function does work if you pass a lambda function::
 +
 +        sage: numerical_integral(lambda x: lambert_w(x), 0, 1)
@@ -142,8 +142,8 @@ diff --git a/sage/functions/log.py b/sage/functions/log.py
 +            sage: lambert_w(0, 1.0)
 +            0.567143290409784
 +        """
-+        BuiltinFunction.__init__(self, "lambert_w", nargs=2, 
-+                                 conversions={'mathematica':'ProductLog', 
++        BuiltinFunction.__init__(self, "lambert_w", nargs=2,
++                                 conversions={'mathematica':'ProductLog',
 +                                              'maple':'LambertW'})
 +
 +    def __call__(self, *args, **kwds):
@@ -186,7 +186,7 @@ diff --git a/sage/functions/log.py b/sage/functions/log.py
 +            -1
 +            sage: lambert_w(SR(-1/e))
 +            -1
-+            sage: lambert_w(SR(0))   
++            sage: lambert_w(SR(0))
 +            0
 +
 +        The special values only hold on the principal branch::
@@ -196,19 +196,19 @@ diff --git a/sage/functions/log.py b/sage/functions/log.py
 +            sage: lambert_w(1, e.n())
 +            -0.532092121986380 + 4.59715801330257*I
 +        """
-+        if not isinstance(z, Expression): 
-+            if is_inexact(z): 
++        if not isinstance(z, Expression):
++            if is_inexact(z):
 +                return self._evalf_(n, z, parent=sage_structure_coerce_parent(z))
 +            elif n == 0 and z == 0:
 +                return sage_structure_coerce_parent(z)(0)
 +        elif n == 0:
-+            if z.is_trivial_zero(): 
++            if z.is_trivial_zero():
 +                return sage_structure_coerce_parent(z)(0)
 +            elif (z-const_e).is_trivial_zero():
 +                return sage_structure_coerce_parent(z)(1)
 +            elif (z+1/const_e).is_trivial_zero():
 +                return sage_structure_coerce_parent(z)(-1)
-+        return None 
++        return None
 +
 +    def _evalf_(self, n, z, parent=None):
 +        """

@@ -222,7 +222,7 @@ new file mode 100644
 +            exp_integral_e(1, 0)
 +
 +        """
-+        BuiltinFunction.__init__(self, "exp_integral_e", nargs=2, 
++        BuiltinFunction.__init__(self, "exp_integral_e", nargs=2,
 +                                 latex_name=r'exp_integral_e',
 +                                 conversions=dict(maxima='expintegral_e'))
 +
@@ -365,8 +365,8 @@ new file mode 100644
 +            exp_integral_e1(1)
 +
 +        """
-+        BuiltinFunction.__init__(self, "exp_integral_e1", nargs=1, 
-+                                 latex_name=r'exp_integral_e1', 
++        BuiltinFunction.__init__(self, "exp_integral_e1", nargs=1,
++                                 latex_name=r'exp_integral_e1',
 +                                 conversions=dict(maxima='expintegral_e1'))
 +
 +    def _eval_(self, z):
@@ -480,7 +480,7 @@ new file mode 100644
 +            log_integral(3)
 +
 +        """
-+        BuiltinFunction.__init__(self, "log_integral", nargs=1, 
++        BuiltinFunction.__init__(self, "log_integral", nargs=1,
 +                                 latex_name=r'log_integral',
 +                                 conversions=dict(maxima='expintegral_li'))
 +
@@ -638,8 +638,8 @@ new file mode 100644
 +            sin_integral(1)
 +
 +        """
-+        BuiltinFunction.__init__(self, "sin_integral", nargs=1, 
-+                                 latex_name=r'\operatorname{Si}', 
++        BuiltinFunction.__init__(self, "sin_integral", nargs=1,
++                                 latex_name=r'\operatorname{Si}',
 +                                 conversions=dict(maxima='expintegral_si'))
 +
 +    def _eval_(self, z):
@@ -798,8 +798,8 @@ new file mode 100644
 +            cos_integral(1)
 +
 +        """
-+        BuiltinFunction.__init__(self, "cos_integral", nargs=1, 
-+                                 latex_name=r'\operatorname{Ci}', 
++        BuiltinFunction.__init__(self, "cos_integral", nargs=1,
++                                 latex_name=r'\operatorname{Ci}',
 +                                 conversions=dict(maxima='expintegral_ci'))
 +
 +    def _eval_(self, z):
@@ -930,8 +930,8 @@ new file mode 100644
 +            sinh_integral(1)
 +
 +        """
-+        BuiltinFunction.__init__(self, "sinh_integral", nargs=1, 
-+                                 latex_name=r'\operatorname{Shi}', 
++        BuiltinFunction.__init__(self, "sinh_integral", nargs=1,
++                                 latex_name=r'\operatorname{Shi}',
 +                                 conversions=dict(maxima='expintegral_shi'))
 +
 +    def _eval_(self, z):
@@ -1069,8 +1069,8 @@ new file mode 100644
 +            cosh_integral(1)
 +
 +        """
-+        BuiltinFunction.__init__(self, "cosh_integral", nargs=1, 
-+                                 latex_name=r'\operatorname{Chi}', 
++        BuiltinFunction.__init__(self, "cosh_integral", nargs=1,
++                                 latex_name=r'\operatorname{Chi}',
 +                                 conversions=dict(maxima='expintegral_chi'))
 +
 +    def _eval_(self, z):

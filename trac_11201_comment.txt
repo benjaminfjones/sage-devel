@@ -1,0 +1,61 @@
+That's a good start. Thanks for the contribution!
+
+I started looking at the patch and I have a couple of comments. First, I tried running doctests on `sage/symbolic/expression.pyx` and there are a lot of new failures due to the unexpected info message that's been added. For example,
+
+{{{
+jonesbe@macbook ~/sage/latest/devel/sage> ../../sage -t sage/symbolic/expression.pyx
+sage -t  "devel/sage-test/sage/symbolic/expression.pyx"     
+**********************************************************************
+File "/Users/jonesbe/sage/sage-5.0.beta12/devel/sage-test/sage/symbolic/expression.pyx", line 7761:
+    sage: f.roots(x)
+Expected:
+    [(a, 1), (-I, 1), (I, 1), (1, 3), (-1, 3)]
+Got:
+    For explicit results, try setting the 'to_poly_solve' keyword to True.
+    [(a, 1), (-I, 1), (I, 1), (1, 3), (-1, 3)]
+}}}
+
+There might be other doctest failures besides ones related to the new message, I don't have time to look through them all right now.
+
+-----
+
+I'm still not sure what exactly setting `to_poly_solve='use_grobner=true'` does. Consider the following Sage-5.0.beta12 session (with your patch applied):
+
+Here is what Maxima (5.26.0) does:
+{{{
+sage: maxima('load(to_poly_solver)')
+"/Users/jonesbe/sage/sage-5.0.beta12/local/share/maxima/5.26.0/share/contrib/to_poly_solver.mac"
+sage: maxima('to_poly_solve([x^2+y^2=2^2,(x-1)^2+(y-1)^2=2^2],[x,y]);')
+%union()
+sage: maxima('to_poly_solve([x^2+y^2=2^2,(x-1)^2+(y-1)^2=2^2],[x,y],use_grobner=true);')
+%union([x=-(sqrt(7)-1)/2,y=(sqrt(7)+1)/2],[x=(sqrt(7)+1)/2,y=-(sqrt(7)-1)/2])
+}}}
+
+Here is what Sage does (same system of equations, same options):
+{{{
+sage: solve(x == sqrt(x+1), x)
+For explicit results, try setting the 'to_poly_solve' keyword to True.
+[x == sqrt(x + 1)]
+sage: solve(x == sqrt(x+1), x, to_poly_solve=True)
+For explicit results, try setting the 'to_poly_solve' keyword to True.
+[x == 1/2*sqrt(5) + 1/2]
+sage: solve(x == sqrt(x+1), x, to_poly_solve='use_grobner=true')
+For explicit results, try setting the 'to_poly_solve' keyword to True.
+[x == 1/2*sqrt(5) + 1/2]
+}}}
+
+So it seems like `use_grobner` has no effect, despite it having an effect in Maxima. Is it always set to true when `to_poly_solve=True` is specified? If so, we should really get rid of this confusing solve option. If there is a good example where it actually has an effect, that should be added to the EXAMPLES:: section in the solve docs. The example illustrating it right now doesn't change if you set `to_poly_solve=True` instead of `to_poly_solve='use_grobner=true'`:
+
+{{{
+sage: solve(x == sqrt(x+1), x)
+For explicit results, try setting the 'to_poly_solve' keyword to True.
+[x == sqrt(x + 1)]
+sage: solve(x == sqrt(x+1), x, to_poly_solve=True)
+For explicit results, try setting the 'to_poly_solve' keyword to True.
+[x == 1/2*sqrt(5) + 1/2]
+sage: solve(x == sqrt(x+1), x, to_poly_solve='use_grobner=true')
+For explicit results, try setting the 'to_poly_solve' keyword to True.
+[x == 1/2*sqrt(5) + 1/2]
+}}}
+
+Last comment: I think the info message should not be printed when I do give to_poly_solve= a value (see last two commands in the last session). 

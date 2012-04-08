@@ -1,0 +1,28 @@
+# HG changeset patch
+# User Robert Miller <rlm@rlmiller.org>
+# Date 1279099816 25200
+# Node ID 8ce0e6491780bb845a4af4baf0a6b30d91630f48
+# Parent  9fbc81638a3fc7df8866a1e2b3957eea44ac4d7f
+#9494 - add a doctest to benchmark.py
+
+diff -r 9fbc81638a3f -r 8ce0e6491780 sage/tests/benchmark.py
+--- a/sage/tests/benchmark.py	Tue Jul 13 09:40:19 2010 -0700
++++ b/sage/tests/benchmark.py	Wed Jul 14 02:30:16 2010 -0700
+@@ -1952,6 +1952,17 @@
+        * Singular (i.e., Sage) does shockingly well.
+        * mathematica is sometimes amazing.
+        * macaulay2 is also quite bad (though not as bad as maple).
++
++    EXAMPLE::
++
++        sage: from sage.tests.benchmark import mpoly_all
++        sage: mpoly_all() # not tested
++        <BLANKLINE>
++        ...
++        ...System      min         avg         max         trials          cpu or wall
++        ...
++        * sage...
++
+     """
+     systems = ['sage', 'magma', 'mathematica', 'macaulay2']
+     if include_maple:
