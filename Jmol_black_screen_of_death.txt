@@ -1,0 +1,102 @@
+;; This buffer is for notes you don't want to save, and for Lisp evaluation.
+;; If you want to create a file, visit that file with C-x C-f,
+;; then enter the text in that file's own buffer.
+
+message for google groups
+
+3d plotting using Jmol: black screen of death
+
+I've read through all the Jmol problem threads here that I could find,
+back to 2008, and I can't find an answer to the "Jmol produces a blank,
+black display" problem I'm about to describe. So here is a new thread.
+...
+
+I've been having a frustrating time making 3d plots using Jmol for a while now. I have
+a server setup running Debian and various versions of the Sage notebook on
+different ports. I'm connecting to the server mainly with a newish
+MacBook Pro (OS X 10.6.8) using Firefox 11 or Chrome
+18.0.1025.151.
+
+I experience the following thing, over and over again.
+1. I connect to the notebook
+2. I start a new worksheet
+3. I type cube() into the first cell and evaluate
+4. Jmol loads, I see a cube. Great!
+5. I Save and Quit, go do something else, maybe shut the lid on my
+laptop, etc.
+6. I load the worksheet just made. Where the Jmol applet displays
+there is only a black screen.
+7. Re-evaluating the cell returns the same black display.
+8. Quitting browser, clearing cache, cookies, rebooting computer, has
+no effect.
+9. I notice that one I get the "black screen of death" once, I get it
+in every other old worksheet containing a Jmol applet and in every new
+worksheet I produce until some later indeterminate time when it starts
+working again.
+
+In trying to isolate the problem, or just to find a Sage / Sagenb
+version where 3d plotting with Jmol works consistently, I collected
+some data:
+
+   - Note: Mac = Mac OS X 10.6.8, Linux = Fedora 16 VM
+   - Note: on Mac and Linux, all examples at
+     http://jmol.sourceforge.net/demo/ WORK fine.
+   - Note: When I say WORK, I means the plots load always, can be
+     reloaded, at will, anytime. When I say FAILS, I mean that it
+     might work the first time the plot is made, but I get black
+     screen of death or some other bad behavior thereafter.
+
+= Data =
+
+== MY SERVER ==
+
+   - Sage 4.7.1
+     - Mac
+       - FAILS in FF 11 (black screen, menus work but no data)
+       - FAILS in Chrome 18.0.1025.151 (black screen, menus work but no data)
+     - Linux
+       - FAILS in FF 11 (black screen, red error "No atoms found for file string type
+	 Xyz")
+     - Windows 7
+       - WORKS on one machine, FAILS on another  in FF 11
+       - WORKS in IE (both machines!?!?)
+
+   - Sage 4.8 + new notebook at #11080 (applied months ago)
+     - Mac
+       - FAILS in FF 11 (black screen, menus work but no data)
+       - FAILS in Chrome 18.0.1025.151 (black screen, menus work but no data)
+     - Linux
+       - FAILS in FF 11
+
+   - Sage 4.8 (stock)
+     - Mac
+       - WORKS in FF 11
+       - WORKS in Crome 18.0.1025.151
+     - Linux
+       - FAILS in FF 11 (black screen, red error "No atoms found for file string type")
+
+   - Sage 5.0.beta13 + new notebook at #11080 (applied 2012-04-09)
+     - Mac
+       - FAILS in FF 11 (black screen, menus work but no data)
+       - FAILS in Chrome 18.0.1025.151 (black screen, menus work but no data)
+     - Linux
+       - WORKS in FF 11
+     - Windows 7
+       - WORKS in FF 11
+       - WORKS in IE (!?!?)
+
+== REMOTE SERVERS ==
+
+   - sagenb.org (sage-4.8 + ???)
+     - Mac
+       - WORKS in Chrome 18.0.1025.151
+     - Linux (Fed 16 VM)
+       - WORKS in FF 11
+
+   - test.sagenb.org (sage-5.0.beta11 + ???)
+     - Mac
+       - WORKS in FF 11
+       - WORKS in Chrome 18
+     - Linux
+       - FAILS in FF 11 (Loading Jmol applet counts up forever..)
+       - FAILS in Chrome 18 (tab crashes "he's dead, Jim!")
