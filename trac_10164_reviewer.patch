@@ -1,0 +1,358 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1338238116 25200
+# Node ID 51919269211419e14544d221697c900ae4a4f2ab
+# Parent  f05c9958431ef80c7b854094761cb18e3b18b6d7
+Trac 10164: review patch, names magic number LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
+
+diff --git a/sage/misc/functional.py b/sage/misc/functional.py
+--- a/sage/misc/functional.py
++++ b/sage/misc/functional.py
+@@ -42,6 +42,8 @@
+ 
+ import __builtin__
+ 
++LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
++
+ ##############################################################################
+ # There are many functions on elements of a ring, which mathematicians
+ # usually write f(x), e.g., it is weird to write x.log() and natural
+@@ -1266,8 +1268,8 @@
+         Algebraic Field
+         sage: [a.n() for a in E]
+         [18.1681536508882, -0.0840768254441065 - 0.219026148480291*I, -0.0840768254441065 + 0.219026148480291*I]
+-        
+-    Make sure we've rounded up log(10,2) enough to guarantee 
++
++    Make sure we've rounded up log(10,2) enough to guarantee
+     sufficient precision (trac #10164)::
+ 
+         sage: ks = 4*10**5, 10**6
+@@ -1276,11 +1278,12 @@
+         sage: all(check_str_length(k) and check_precision(k) for k in ks)
+         True
+ 
+-    Testing we have sufficient precision for the golden ratio (trac #12163):
++    Testing we have sufficient precision for the golden ratio (trac #12163), note
++    that the decimal point adds 1 to the string length:
+ 
+         sage: len(str(n(golden_ratio, digits=5000)))
+         5001
+-        sage: len(str(n(golden_ratio, digits=5000000))) 
++        sage: len(str(n(golden_ratio, digits=5000000)))
+         5000001
+ 
+     """
+@@ -1288,7 +1291,7 @@
+         if digits is None:
+             prec = 53
+         else:
+-            prec = int((digits+1) * 3.321928094887363) + 1
++            prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+     try:
+         return x._numerical_approx(prec)
+     except AttributeError:
+diff --git a/sage/rings/complex_interval.pyx b/sage/rings/complex_interval.pyx
+--- a/sage/rings/complex_interval.pyx
++++ b/sage/rings/complex_interval.pyx
+@@ -41,6 +41,8 @@
+ 
+ include "../ext/stdsage.pxi"
+ 
++cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
++
+ def is_ComplexIntervalFieldElement(x):
+     return isinstance(x, ComplexIntervalFieldElement)
+ 
+@@ -1222,7 +1224,7 @@
+     because at the time of writing, we don't support intervals long
+     enough to trip the error.  However, at least we can make sure that
+     we either do it correctly or fail noisily::
+-    
++
+         sage: c_CIFE = sage.rings.complex_interval.create_ComplexIntervalFieldElement
+         sage: for kp in range(2,6):
+         ...       s = '1.' + '0'*10**kp + '1'
+@@ -1235,15 +1237,16 @@
+     """
+     if s_imag is None:
+         s_imag = 0
+-        
++
+     if not isinstance(s_real, str):
+         s_real = str(s_real).strip()
+     if not isinstance(s_imag, str):
+         s_imag = str(s_imag).strip()
+     #if base == 10:
+-    bits = max(int(3.321928094887363*len(s_real)),int(3.321928094887363*len(s_imag)))
++    bits = max(int(LOG_TEN_TWO_PLUS_EPSILON*len(s_real)),
++               int(LOG_TEN_TWO_PLUS_EPSILON*len(s_imag)))
+     #else:
+     #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
+-        
++
+     C = complex_interval_field.ComplexIntervalField(prec=max(bits+pad, min_prec))
+     return ComplexIntervalFieldElement(C, s_real, s_imag)
+diff --git a/sage/rings/complex_number.pyx b/sage/rings/complex_number.pyx
+--- a/sage/rings/complex_number.pyx
++++ b/sage/rings/complex_number.pyx
+@@ -46,6 +46,8 @@
+ cdef mp_rnd_t rnd
+ rnd = GMP_RNDN
+ 
++cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
++
+ def set_global_complex_round_mode(n):
+     global rnd
+     rnd = n
+@@ -2196,23 +2198,23 @@
+     s_imag as an element of ``ComplexField(prec=n)``,
+     where n potentially has slightly more (controlled by pad) bits than
+     given by s.
+-    
++
+     INPUT:
+-    
++
+     -  ``s_real`` - a string that defines a real number
+        (or something whose string representation defines a number)
+-    
++
+     -  ``s_imag`` - a string that defines a real number
+        (or something whose string representation defines a number)
+-    
++
+     -  ``pad`` - an integer >= 0.
+-    
++
+     -  ``min_prec`` - number will have at least this many
+        bits of precision, no matter what.
+-    
+-    
++
++
+     EXAMPLES::
+-    
++
+         sage: ComplexNumber('2.3')
+         2.30000000000000
+         sage: ComplexNumber('2.3','1.1')
+@@ -2225,17 +2227,17 @@
+         1.00000000000000000000000000 + 2.00000000000000000000000000*I
+         sage: ComplexNumber(1,2.000000000000000000000)
+         1.00000000000000000000 + 2.00000000000000000000*I
+-    
++
+     ::
+-    
++
+         sage: sage.rings.complex_number.create_ComplexNumber(s_real=2,s_imag=1)
+         2.00000000000000 + 1.00000000000000*I
+ 
+     TESTS:
+ 
+-    Make sure we've rounded up log(10,2) enough to guarantee 
++    Make sure we've rounded up log(10,2) enough to guarantee
+     sufficient precision (trac #10164)::
+-    
++
+         sage: s = "1." + "0"*10**6 + "1"
+         sage: sage.rings.complex_number.create_ComplexNumber(s,0).real()-1 == 0
+         False
+@@ -2245,18 +2247,19 @@
+     """
+     if s_imag is None:
+         s_imag = 0
+-        
++
+     if not isinstance(s_real, str):
+         s_real = str(s_real).strip()
+     if not isinstance(s_imag, str):
+         s_imag = str(s_imag).strip()
+     #if base == 10:
+-    bits = max(int(3.321928094887363*len(s_real)),int(3.321928094887363*len(s_imag)))
++    bits = max(int(LOG_TEN_TWO_PLUS_EPSILON*len(s_real)),
++               int(LOG_TEN_TWO_PLUS_EPSILON*len(s_imag)))
+     #else:
+     #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
+-        
++
+     C = complex_field.ComplexField(prec=max(bits+pad, min_prec))
+-        
++
+     return ComplexNumber(C, s_real, s_imag)
+ 
+ 
+diff --git a/sage/rings/real_mpfi.pyx b/sage/rings/real_mpfi.pyx
+--- a/sage/rings/real_mpfi.pyx
++++ b/sage/rings/real_mpfi.pyx
+@@ -230,6 +230,8 @@
+ printing_style = 'question'
+ printing_error_digits = 0
+ 
++cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
++
+ #*****************************************************************************
+ #
+ #       Real Field
+@@ -4406,10 +4408,10 @@
+     because at the time of writing, we don't support intervals long
+     enough to trip the error.  However, at least we can make sure
+     that we either do it correctly or fail noisily::
+-    
++
+         sage: ks = 5*10**5, 10**6
+         sage: for k in ks:
+-        ...      try: 
++        ...      try:
+         ...          z = RealInterval("1." + "1"*k)
+         ...          assert len(str(z))-4 >= k
+         ...      except TypeError:
+@@ -4420,7 +4422,7 @@
+         s = str(s)
+     if base == 10:
+         # hard-code the common case
+-        bits = int(3.321928094887363*len(s))
++        bits = int(LOG_TEN_TWO_PLUS_EPSILON*len(s))
+     else:
+         bits = int(math.log(base,2)*1.00001*len(s))
+     R = RealIntervalField(prec=max(bits+pad, min_prec))
+diff --git a/sage/rings/real_mpfr.pyx b/sage/rings/real_mpfr.pyx
+--- a/sage/rings/real_mpfr.pyx
++++ b/sage/rings/real_mpfr.pyx
+@@ -214,6 +214,8 @@
+ 
+ _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
+ 
++cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
++
+ cdef object RealField_cache = weakref.WeakValueDictionary()
+ 
+ def RealField(int prec=53, int sci_not=0, rnd="RNDN"):
+@@ -4863,7 +4865,7 @@
+             return RealLiteral(self._parent, self.literal[1:], self.base)
+         else:
+             return RealLiteral(self._parent, '-'+self.literal, self.base)
+-    
++
+ RR = RealField()
+ 
+ RR_min_prec = RealField(MPFR_PREC_MIN)
+@@ -4874,25 +4876,25 @@
+     Return the real number defined by the string s as an element of
+     ``RealField(prec=n)``, where n potentially has slightly
+     more (controlled by pad) bits than given by s.
+-    
++
+     INPUT:
+-    
+-    
++
++
+     -  ``s`` - a string that defines a real number (or
+        something whose string representation defines a number)
+-    
++
+     -  ``base`` - an integer between 2 and 36
+-    
++
+     -  ``pad`` - an integer = 0.
+-    
++
+     -  ``rnd`` - rounding mode: RNDN, RNDZ, RNDU, RNDD
+-    
++
+     -  ``min_prec`` - number will have at least this many
+        bits of precision, no matter what.
+-    
+-    
++
++
+     EXAMPLES::
+-    
++
+         sage: RealNumber('2.3')
+         2.30000000000000
+         sage: RealNumber(10)
+@@ -4903,9 +4905,9 @@
+         1.2000000000000000000000000000000000000000000000000000000000
+         sage: (1.2).parent() is RR
+         True
+-        
++
+     TESTS::
+-    
++
+         sage: RealNumber('.000000000000000000000000000000001').prec()
+         53
+         sage: RealNumber('-.000000000000000000000000000000001').prec()
+@@ -4917,16 +4919,16 @@
+         sage: ks = 5*10**5, 10**6
+         sage: all(RealNumber("1." + "0"*k +"1")-1 > 0 for k in ks)
+         True
+-        
++
+     """
+     if not isinstance(s, str):
+         s = str(s)
+-        
++
+     if base == 10 and min_prec == 53 and len(s) <= 15:
+         R = RR
+-    
++
+     else:
+-    
++
+         if 'e' in s or 'E' in s:
+             #Figure out the exponent
+             index = max( s.find('e'), s.find('E') )
+@@ -4934,7 +4936,7 @@
+             mantissa = s[:index]
+         else:
+             mantissa = s
+-            
++
+         #Find the first nonzero entry in rest
+         sigfigs = 0
+         for i in range(len(mantissa)):
+@@ -4944,15 +4946,15 @@
+ 
+         if '.' in mantissa and mantissa[:2] != '0.':
+             sigfigs -= 1
+-        
++
+         if base == 10:
+             # hard-code the common case
+-            bits = int(3.321928094887363*sigfigs)+1
++            bits = int(LOG_TEN_TWO_PLUS_EPSILON*sigfigs)+1
+         else:
+             bits = int(math.log(base,2)*1.00001*sigfigs)+1
+ 
+         R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+-        
++
+     return RealLiteral(R, s, base)
+ 
+ 
+diff --git a/sage/symbolic/expression.pyx b/sage/symbolic/expression.pyx
+--- a/sage/symbolic/expression.pyx
++++ b/sage/symbolic/expression.pyx
+@@ -149,6 +149,8 @@
+ from sage.misc.decorators import rename_keyword
+ from sage.misc.misc import deprecated_function_alias
+ 
++LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
++
+ """
+ SAGE_DOCTEST_ALLOW_TABS
+ """
+@@ -4119,7 +4121,7 @@
+             if digits is None:
+                 prec = 53
+             else:
+-                prec = int((digits+1) * 3.321928094887363) + 1
++                prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+         from sage.rings.real_mpfr import RealField
+         R = RealField(prec)
+         cdef Expression x

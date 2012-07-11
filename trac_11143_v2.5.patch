@@ -1,7 +1,7 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
 # Date 1314069403 25200
-# Node ID 61845fc635d288eedfbe073f095a08896bac05a8
+# Node ID 01ab5ae4524a8914035aff4867711b5646b7a95d
 # Parent  9ab4ab6e12d0ce97566db069205815303514de4d
 Trac 11143: adds top-level access to exponential integral functions in sage/functions/exp_integral.py
 
@@ -49,12 +49,12 @@ diff --git a/sage/functions/all.py b/sage/functions/all.py
 +from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li,
 +                          sin_integral, cos_integral, Si, Ci,
 +                          sinh_integral, cosh_integral, Shi, Chi,
-+                          exponential_integral_1, exp_int, Ei)
++                          exponential_integral_1, Ei)
 diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
 new file mode 100644
 --- /dev/null
 +++ b/sage/functions/exp_integral.py
-@@ -0,0 +1,1331 @@
+@@ -0,0 +1,1336 @@
 +r"""
 +Exponential Integrals
 +
@@ -438,6 +438,8 @@ new file mode 100644
 +        2.16358859466719197287692236735
 +        sage: log_integral(ComplexField(100)(3+I))
 +        2.2879892769816826157078450911 + 0.87232935488528370139883806779*I
++        sage: log_integral(0)
++        0
 +
 +    Symbolic derivatives and integrals are handled by Sage and Maxima::
 +
@@ -493,11 +495,18 @@ new file mode 100644
 +            log_integral(z)
 +            sage: log_integral(3.0)
 +            2.16358859466719
++            sage: log_integral(0)
++            0
 +
 +        """
-+        if not isinstance(z, Expression) and is_inexact(z):
-+            return self._evalf_(z, parent(z))
-+
++        if isinstance(z, Expression):
++            if z.is_trivial_zero():         # special case: z = 0
++                return z
++        else:
++            if is_inexact(z):
++                return self._evalf_(z, parent(z))
++            elif not z:
++                return z
 +        return None # leaves the expression unevaluated
 +
 +    def _evalf_(self, z, parent=None):
@@ -922,6 +931,18 @@ new file mode 100644
 +        sage: f.integrate(x)
 +        x*sinh_integral(x) - cosh(x)
 +
++    Note that due to some problems with the way Maxima handles these
++    expressions, definite integrals can sometimes give unexpected
++    results (typically when using inexact endpoints) due to
++    inconsistent branching::
++
++        sage: integrate(sinh_integral(x), x, 0, 1/2)
++        -cosh(1/2) + 1/2*sinh_integral(1/2) + 1
++        sage: integrate(sinh_integral(x), x, 0, 1/2).n() # correct
++        0.125872409703453
++        sage: integrate(sinh_integral(x), x, 0, 0.5).n() # incorrect!
++        0.125872409703453 + 1.57079632679490*I
++
 +    ALGORITHM:
 +
 +    Numerical evaluation is handled using mpmath, but symbolics are handled
@@ -1143,38 +1164,10 @@ new file mode 100644
 +Chi = cosh_integral = Function_cosh_integral()
 +
 +
-+#############################################
-+## Code below here was moved from either:
-+## - sage/functions/transcendental.py
-+## - sage/functions/special.py
++###################################################################
++## Code below here was moved from sage/functions/transcendental.py
 +## This occured as part of Trac #11143.
-+#############################################
-+
-+# moved here from sage/functions/special.py
-+def exp_int(t):
-+    r"""
-+    The exponential integral `\int_t^\infty e^{-x}/x \; dx` (`t`
-+    belongs to `\mathbb{R}`).  This function is deprecated - please use
-+    ``Ei`` or ``exponential_integral_1`` as needed instead.
-+
-+    EXAMPLES::
-+
-+        sage: exp_int(6)
-+        doctest:...: DeprecationWarning: The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
-+        0.000360082452162659
-+    """
-+    from sage.misc.misc import deprecation
-+    deprecation("The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
-+    try:
-+        return t.eint1()
-+    except AttributeError:
-+        from sage.libs.pari.all import pari
-+        try:
-+            return pari(t).eint1()
-+        except:
-+            raise NotImplementedError
-+
-+# moved here from sage/functions/transcendental.py
++###################################################################
 +#
 +# This class has a name which is not specific enough
 +# see Function_exp_integral_e above, for example, which
@@ -1364,6 +1357,8 @@ new file mode 100644
 +        sage: w = exponential_integral_1(2,4); w
 +        [0.04890051070806112, 0.0037793524098489067, 0.00036008245216265873, 3.7665622843924751e-05] # 32-bit
 +        [0.04890051070806112, 0.0037793524098489063, 0.00036008245216265873, 3.7665622843924534e-05] # 64-bit
++        sage: exponential_integral_1(0)
++        +Infinity
 +
 +    IMPLEMENTATION: We use the PARI C-library functions eint1 and
 +    veceint1.
@@ -1379,8 +1374,18 @@ new file mode 100644
 +    second for n=800000, and takes "forever" for n=900000.
 +    """
 +    if isinstance(x, Expression):
-+        raise NotImplementedError("Use the symbolic exponential integral " +
-+        "function: exp_integral_e1.")
++        if x.is_trivial_zero():
++            from sage.rings.infinity import Infinity
++            return Infinity
++        else:
++            raise NotImplementedError("Use the symbolic exponential integral " +
++                                      "function: exp_integral_e1.")
++    elif not is_inexact(x): # x is exact and not an expression
++        if not x: # test if exact x == 0 quickly
++            from sage.rings.infinity import Infinity
++            return Infinity
++
++    # else x is in not an exact 0
 +    from sage.libs.pari.all import pari
 +    if n <= 0:
 +        return float(pari(x).eint1())

@@ -1,0 +1,89 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1338170550 25200
+# Node ID 9038152f45ee04a874b4ea1bf3ece3d4fa57ae69
+# Parent  9006b3792995c69f087ba20799039ccdb9d77d72
+Trac 12289: rebase evalf dict change in pynac to sage-5.0 + pynac-0.2.4
+
+diff --git a/sage/symbolic/expression.pyx b/sage/symbolic/expression.pyx
+--- a/sage/symbolic/expression.pyx
++++ b/sage/symbolic/expression.pyx
+@@ -828,7 +828,7 @@
+         """
+         cdef GEx res
+         try:
+-            res = self._gobj.evalf(0, R)
++            res = self._gobj.evalf(0, {'parent':R})
+         except TypeError as err:
+             # try the evaluation again with the complex field
+             # corresponding to the parent R
+@@ -839,7 +839,7 @@
+                     R_complex = R.complex_field()
+                 except (TypeError, AttributeError):
+                     raise err
+-            res = self._gobj.evalf(0, R_complex)
++            res = self._gobj.evalf(0, {'parent':R})
+         if is_a_numeric(res):
+             return R(py_object_from_numeric(res))
+         else:
+diff --git a/sage/symbolic/pynac.pyx b/sage/symbolic/pynac.pyx
+--- a/sage/symbolic/pynac.pyx
++++ b/sage/symbolic/pynac.pyx
+@@ -1082,45 +1082,45 @@
+     """
+     return py_is_cinteger(x)
+ 
+-cdef public object py_float(object n, PyObject* parent) except +:
++cdef public object py_float(object n, object kwds) except +:
+     """
+     Evaluate pynac numeric objects numerically.
+ 
+     TESTS::
+ 
+         sage: from sage.symbolic.pynac import py_float_for_doctests as py_float
+-        sage: py_float(I, ComplexField(10))
++        sage: py_float(I, {'parent':ComplexField(10)})
+         1.0*I
+-        sage: py_float(pi, RealField(100))
++        sage: py_float(pi, {'parent':RealField(100)})
+         3.1415926535897932384626433833
+         sage: py_float(10, CDF)
+         10.0
+-        sage: type(py_float(10, CDF))
++        sage: type(py_float(10, {'parent':CDF}))
+         <type 'sage.rings.complex_double.ComplexDoubleElement'>
+-        sage: py_float(1/2, CC)
++        sage: py_float(1/2, {'parent':CC}))
+         0.500000000000000
+-        sage: type(py_float(1/2, CC))
++        sage: type(py_float(1/2, {'parent':CC}))
+         <type 'sage.rings.complex_number.ComplexNumber'>
+     """
+-    if parent is not NULL:
+-        return (<object>parent)(n)
++    if 'parent' in kwds:
++        return kwds['parent'](n)
+     else:
+         try:
+             return RR(n)
+         except TypeError:
+             return CC(n)
+ 
+-def py_float_for_doctests(n, prec):
++def py_float_for_doctests(n, kwds):
+     """
+     This function is for testing py_float.
+ 
+     EXAMPLES::
+-        
++
+         sage: from sage.symbolic.pynac import py_float_for_doctests
+-        sage: py_float_for_doctests(pi, RealField(80))
++        sage: py_float_for_doctests(pi, {'parent':RealField(80)})
+         3.1415926535897932384626
+     """
+-    return py_float(n, <PyObject*>prec)
++    return py_float(n, kwds)
+ 
+ # TODO: Optimize this
+ from sage.rings.real_double import RDF

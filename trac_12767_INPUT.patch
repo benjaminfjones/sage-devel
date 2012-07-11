@@ -1,0 +1,29 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1337999655 25200
+# Node ID 69b060f83b51ed91445246b6c138e27418b21b69
+# Parent  4766bf776b48969396ee11d80811adef6a492896
+Trac 12767: document INPUT in `maximal_order`
+
+diff --git a/sage/rings/number_field/number_field_rel.py b/sage/rings/number_field/number_field_rel.py
+--- a/sage/rings/number_field/number_field_rel.py
++++ b/sage/rings/number_field/number_field_rel.py
+@@ -614,6 +614,18 @@
+         Return the maximal order, i.e., the ring of integers of this
+         number field.
+ 
++        INPUT:
++
++        -  ``v`` - (default: None) None, a prime, or a list of
++           primes.
++
++           - if v is None, return the maximal order.
++
++           - if v is a prime, return an order that is p-maximal.
++
++           - if v is a list, return an order that is maximal at each
++             prime in the list v.
++
+         EXAMPLES::
+ 
+             sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])

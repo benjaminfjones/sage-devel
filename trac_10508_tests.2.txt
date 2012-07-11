@@ -1,0 +1,78 @@
+= Testing in sage-5.1.rc1 on x86_64 debian Linux: =
+
+{{{
+$ uname -a
+Linux sage 2.6.32 #1 SMP Fri Sep 2 21:08:57 CDT 2011 x86_64 GNU/Linux
+
+$ head -18 /proc/cpuinfo 
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 44
+model name      : Intel(R) Xeon(R) CPU           X5690  @ 3.47GHz
+stepping        : 2
+cpu MHz         : 3465.790
+cache size      : 12288 KB
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 11
+wp              : yes
+flags           : fpu de tsc msr pae cx8 sep cmov pat clflush mmx fxsr sse sse2 ss ht syscall nx lm constant_tsc rep_good aperfmperf pni pclmulqdq ssse3 cx16 sse4_1 sse4_2 popcnt aes hypervisor lahf_lm ida arat
+bogomips        : 6931.58
+clflush size    : 64
+cache_alignment : 64
+address sizes   : 40 bits physical, 48 bits virtual
+power management:
+}}}
+
+== BEFORE new ATLAS spkg ==
+
+{{{
+sage -t  "devel/sage-main/sage/modular/modsym/ambient.py"   
+         [11.6 s]
+
+sage -t  "devel/sage-main/sage/modular/hecke/ambient_module.py"
+         [4.2 s]
+
+sage -t  "devel/sage-main/sage/modular/hecke/hecke_operator.py"
+         [3.0 s]
+}}}
+
+== AFTER new spkg ==
+
+ 1. untar'd fresh sage-5.1.rc1
+ 2. replaced atlas-3.8.4.p1.spkg with atlas-3.9.85.spkg
+ 3. make build
+
+SPKG build log: http://sage.math.washington.edu/home/bjones/atlas-3.9.85.log 
+
+=== Build atlas-3.9.85 ===
+
+{{{
+real    11m18.595s
+user    11m15.906s
+sys     2m56.099s
+Successfully installed atlas-3.9.85
+}}}
+
+=== Tests ===
+
+{{{
+sage -t  "devel/sage-main/sage/modular/modsym/ambient.py"   
+         [11.6 s]
+
+sage -t  "devel/sage-main/sage/modular/hecke/ambient_module.py"
+         [4.2 s]
+
+sage -t  "devel/sage-main/sage/modular/hecke/hecke_operator.py"
+         [3.1 s]
+}}}
+
+=== All tests ===
+
+{{{
+$ make ptestlong
+...
+All tests passed!
+Total time for all tests: 1282.1 seconds
+}}}

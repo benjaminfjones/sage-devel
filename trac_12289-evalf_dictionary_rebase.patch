@@ -1,0 +1,120 @@
+# HG changeset patch
+# User Jean-Pierre Flori <jean-pierre.flor@ssi.gouv.fr>
+# Date 1337847098 -7200
+# Node ID f32794ad03dd6ed0746db26b586f83bb9cc5933a
+# Parent  319b0d196dded363524beddbccbda00c933c0146
+trac 12289: convert parent keyword argument of _evalf_() to an arbitrary dict
+
+Custom evaluation methods defined in symbolic functions only accept parent as
+a keyword argument. This framework does not allow the user to select different
+systems for the numeric evaluation of a function.
+
+Pynac passes around a Python object around during numeric evaluation. This
+patch, along with the corresponding changes in Pynac, makes this object an
+arbitrary dict. This dictionary can later be used to pass around different
+options relevant for numeric evaluation.
+
+diff --git a/sage/symbolic/expression.pyx b/sage/symbolic/expression.pyx
+--- a/sage/symbolic/expression.pyx
++++ b/sage/symbolic/expression.pyx
+@@ -828,7 +828,7 @@
+         """
+         cdef GEx res
+         try:
+-            res = self._gobj.evalf(0, R)
++            res = self._gobj.evalf(0, {'parent':R})
+         except TypeError as err:
+             # try the evaluation again with the complex field
+             # corresponding to the parent R
+@@ -839,7 +839,7 @@
+                     R_complex = R.complex_field()
+                 except (TypeError, AttributeError):
+                     raise err
+-            res = self._gobj.evalf(0, R_complex)
++            res = self._gobj.evalf(0, {'parent':R})
+         if is_a_numeric(res):
+             return R(py_object_from_numeric(res))
+         else:
+@@ -888,7 +888,7 @@
+             sage: f._convert(int)
+             -0.989992496600445*sqrt(2)
+         """
+-        cdef GEx res = self._gobj.evalf(0, R)
++        cdef GEx res = self._gobj.evalf(0, {'parent':R})
+         return new_Expression_from_GEx(self._parent, res)
+ 
+     def _mpfr_(self, R):
+diff --git a/sage/symbolic/pynac.pyx b/sage/symbolic/pynac.pyx
+--- a/sage/symbolic/pynac.pyx
++++ b/sage/symbolic/pynac.pyx
+@@ -1082,45 +1082,45 @@
+     """
+     return py_is_cinteger(x)
+ 
+-cdef public object py_float(object n, PyObject* parent) except +:
++cdef public object py_float(object n, object kwds) except +:
+     """
+     Evaluate pynac numeric objects numerically.
+ 
+     TESTS::
+ 
+         sage: from sage.symbolic.pynac import py_float_for_doctests as py_float
+-        sage: py_float(I, ComplexField(10))
++        sage: py_float(I, {'parent':ComplexField(10)})
+         1.0*I
+-        sage: py_float(pi, RealField(100))
++        sage: py_float(pi, {'parent':RealField(100)})
+         3.1415926535897932384626433833
+         sage: py_float(10, CDF)
+         10.0
+-        sage: type(py_float(10, CDF))
++        sage: type(py_float(10, {'parent':CDF}))
+         <type 'sage.rings.complex_double.ComplexDoubleElement'>
+-        sage: py_float(1/2, CC)
++        sage: py_float(1/2, {'parent':CC}))
+         0.500000000000000
+-        sage: type(py_float(1/2, CC))
++        sage: type(py_float(1/2, {'parent':CC}))
+         <type 'sage.rings.complex_number.ComplexNumber'>
+     """
+-    if parent is not NULL:
+-        return (<object>parent)(n)
++    if 'parent' in kwds:
++        return kwds['parent'](n)
+     else:
+         try:
+             return RR(n)
+         except TypeError:
+             return CC(n)
+ 
+-def py_float_for_doctests(n, prec):
++def py_float_for_doctests(n, kwds):
+     """
+     This function is for testing py_float.
+ 
+     EXAMPLES::
+-        
++
+         sage: from sage.symbolic.pynac import py_float_for_doctests
+-        sage: py_float_for_doctests(pi, RealField(80))
++        sage: py_float_for_doctests(pi, {'parent':RealField(80)})
+         3.1415926535897932384626
+     """
+-    return py_float(n, <PyObject*>prec)
++    return py_float(n, kwds)
+ 
+ # TODO: Optimize this
+ from sage.rings.real_double import RDF
+@@ -1895,10 +1895,10 @@
+         pc = c._pynac
+         return pc.object
+ 
+-cdef public object py_eval_constant(unsigned serial, object parent) except +:
++cdef public object py_eval_constant(unsigned serial, object kwds) except +:
+     from sage.symbolic.constants import constants_table
+     constant = constants_table[serial]
+-    return parent(constant)
++    return kwds['parent'](constant)
+ 
+ cdef public object py_eval_unsigned_infinity() except +:
+     """
