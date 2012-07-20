@@ -1,0 +1,48 @@
+# HG changeset patch
+# User Karl-Dieter Crisman <kcrisman@gmail.com>
+# Date 1342754633 14400
+# Node ID 98364af314b9375a7c6eacba786f2d60660891a7
+# Parent  14aab20d01f234db58f262988b8741fdff1bcfd7
+Trac 13271 - fix problem converting Ei to Maxima
+
+diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
+--- a/sage/functions/exp_integral.py
++++ b/sage/functions/exp_integral.py
+@@ -1149,6 +1149,18 @@
+ 
+     ALGORITHM: Uses mpmath.
+ 
++    TESTS:
++
++    Show that the evaluation and limit issue in :trac:`13271` is fixed::
++
++        sage: var('Z')
++        Z
++        sage: (Ei(-Z)).limit(Z=oo)
++        0
++        sage: (Ei(-Z)).limit(Z=1000)
++        Ei(-1000)
++        sage: (Ei(-Z)).limit(Z=1000).n()
++        -5.07089306023517e-438
+     """
+     def __init__(self):
+         """
+diff --git a/sage/interfaces/maxima_lib.py b/sage/interfaces/maxima_lib.py
+--- a/sage/interfaces/maxima_lib.py
++++ b/sage/interfaces/maxima_lib.py
+@@ -1165,7 +1165,6 @@
+ max_psi=EclObject("$PSI")
+ max_array=EclObject("ARRAY")
+ mdiff=EclObject("%DERIVATIVE")
+-max_gamma_incomplete=sage_op_dict[sage.functions.other.gamma_inc]
+ max_lambert_w=sage_op_dict[sage.functions.log.lambert_w]
+ 
+ def mrat_to_sage(expr):
+@@ -1358,7 +1357,6 @@
+     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
+     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
+     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
+-    sage.functions.exp_integral.Ei : lambda X : [[max_gamma_incomplete], 0, X],
+     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X]
+ }
+ 
