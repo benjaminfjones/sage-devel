@@ -1,0 +1,18 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1343066984 18000
+# Node ID 9324d10da87b924b82665efc4d0158b072fd3ff5
+# Parent  fc603a989e1ed7f7939be5316dfedafa08bc4f79
+Trac 13285: add mpmath library to sage.misc.citation
+
+diff --git a/sage/misc/citation.pyx b/sage/misc/citation.pyx
+--- a/sage/misc/citation.pyx
++++ b/sage/misc/citation.pyx
+@@ -40,6 +40,7 @@
+ systems['M4RI'] = ['sage.matrix.matrix_mod2_dense']
+ systems['Givaro'] = ['sage.rings.finite_rings.element_givaro']
+ systems['PolyBoRi'] = ['sage.rings.polynomial.pbori']
++systems['mpmath'] = ['sage.libs.mpmath']
+ 
+ def get_systems(cmd):
+     """
