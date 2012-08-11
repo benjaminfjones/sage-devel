@@ -1,0 +1,22 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1342575279 18000
+# Node ID 69e1c82e872267736bf2ca5622dbfdd4138fb12f
+# Parent  abc00efa606aa017f2860c421d4e4df7f67cf6db
+Trac 10444: reviewer patch, fixed two minor typos
+
+diff --git a/sage/symbolic/relation.py b/sage/symbolic/relation.py
+--- a/sage/symbolic/relation.py
++++ b/sage/symbolic/relation.py
+@@ -496,9 +496,9 @@
+        Maxima's ``to_poly_solver`` package to search for more possible
+        solutions, but possibly encounter approximate solutions.
+        This keyword is incompatible with ``multiplicities=True``
+-       and is not used when solving inequality. Setting ``to_poly_solve``
++       and is not used when solving inequalities. Setting ``to_poly_solve``
+        to 'force' (string) omits Maxima's solve command (useful when
+-       some solution of trigonometric equations are lost).
++       some solutions of trigonometric equations are lost).
+ 
+ 
+     EXAMPLES::

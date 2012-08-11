@@ -1,0 +1,78 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1338262165 25200
+# Node ID 1d919d024637eff015668f55c79557ee3e85d436
+# Parent  aed20da22d0e185eae88f444dd273ef772ea3540
+Trac 8973: p0.patch
+
+diff --git a/draw/SurfaceCalc.cc b/draw/SurfaceCalc.cc
+--- a/draw/SurfaceCalc.cc
++++ b/draw/SurfaceCalc.cc
+@@ -38,6 +38,7 @@
+ #include <IO.h>
+ 
+ #include <math.h>
++#include <cstring>
+ 
+ extern double Y_AXIS_LR_ROTATE;
+ 
+diff --git a/image-formats/ByExtension.cc b/image-formats/ByExtension.cc
+--- a/image-formats/ByExtension.cc
++++ b/image-formats/ByExtension.cc
+@@ -26,7 +26,8 @@
+ 
+ #include <AvailableImageFormats.h>
+ 
+-#include<iostream>
++#include <iostream>
++#include <cstring>
+ 
+ namespace ImageFormats {
+ 
+@@ -87,7 +88,7 @@
+ 		}
+ 		
+ 		// just look for "*.extension"
+-		char* ext = strrchr(filename, '.');
++		const char* ext = strrchr(filename, '.');
+ 		if (ext == 0) {
+ 			return 0;
+ 		}
+diff --git a/misc/IO.cc b/misc/IO.cc
+--- a/misc/IO.cc
++++ b/misc/IO.cc
+@@ -27,6 +27,8 @@
+ 
+ #include <errno.h>
+ 
++#include <cstdlib>
++
+ #ifdef HAVE_UNISTD_H
+ #  include <unistd.h>
+ #endif
+diff --git a/src/init_parser.cc b/src/init_parser.cc
+--- a/src/init_parser.cc
++++ b/src/init_parser.cc
+@@ -32,8 +32,8 @@
+ #include <monomarith.h>
+ #include <AvailableImageFormats.h>
+ 
+-#include<cstdio>
+-#include<string>
++#include <cstdio>
++#include <cstring>
+ 
+ using namespace ScriptVar;
+ 
+diff --git a/yaccsrc/polylexyacc.h b/yaccsrc/polylexyacc.h
+--- a/yaccsrc/polylexyacc.h
++++ b/yaccsrc/polylexyacc.h
+@@ -83,7 +83,7 @@
+ 
+ /*  Global data: */
+ 
+-extern int yyleng;
++extern size_t yyleng;
+ extern long error_begin_char;
+ extern long char_number;
+ extern long line_number;

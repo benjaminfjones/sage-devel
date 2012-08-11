@@ -1,0 +1,19 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1338170406 25200
+# Node ID 599c160d55cf3eeba3dfd195d90aa6a39ec1461a
+# Parent  d9c906677230d6c69bad9749524e67ab7707ae5f
+Trac 12289: fix py_float declaration
+
+diff --git a/sage/libs/ginac/decl.pxi b/sage/libs/ginac/decl.pxi
+--- a/sage/libs/ginac/decl.pxi
++++ b/sage/libs/ginac/decl.pxi
+@@ -454,7 +454,7 @@
+         object (*py_integer_from_long)(long int x) except +
+         object (*py_integer_from_python_obj)(object x) except +
+ 
+-        object (*py_float)(object a, PyObject* parent) except +
++        object (*py_float)(object a, object b) except +
+         object (*py_RDF_from_double)(double x)
+ 
+ 

@@ -1,0 +1,71 @@
+# HG changeset patch
+# User William Stein <wstein@gmail.com>
+# Date 1338233475 25200
+# Node ID e7ca0e32ad52c8b7cb68e0b601c7706211b233c1
+# Parent  e79a6bd34a6e79ce53d86b56c3feebea75d331c3
+Trac #11143: Referee patch
+
+diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
+--- a/sage/functions/exp_integral.py
++++ b/sage/functions/exp_integral.py
+@@ -466,7 +466,7 @@
+         return mpmath_utils_call(mpmath.li, z, parent=parent)
+ 
+     def _derivative_(self, z, diff_param=None):
+-        """
++        r"""
+         The derivative of `\operatorname{li}(z) is `1/log(z)`.
+ 
+         EXAMPLES::
+@@ -657,9 +657,10 @@
+         return mpmath_utils_call(mpmath.si, z, parent=parent)
+ 
+     def _derivative_(self, z, diff_param=None):
+-        """
+-        The derivative of `\operatorname{Si}(z)` is `\sin(z)/z` if `z` is not zero. The derivative
+-        at `z = 0` is `1` (but this exception is not currently implimented).
++        r"""
++        The derivative of `\operatorname{Si}(z)` is `\sin(z)/z` if `z`
++        is not zero. The derivative at `z = 0` is `1` (but this
++        exception is not currently implemented).
+ 
+         EXAMPLES::
+ 
+@@ -800,7 +801,7 @@
+         return mpmath_utils_call(mpmath.ci, z, parent=parent)
+ 
+     def _derivative_(self, z, diff_param=None):
+-        """
++        r"""
+         The derivative of `\operatorname{Ci}(z)` is `\cos(z)/z` if `z` is not zero.
+ 
+         EXAMPLES::
+@@ -953,7 +954,7 @@
+         return mpmath_utils_call(mpmath.shi, z, parent=parent)
+ 
+     def _derivative_(self, z, diff_param=None):
+-        """
++        r"""
+         The derivative of `\operatorname{Shi}(z)` is `\sinh(z)/z`.
+ 
+         EXAMPLES::
+@@ -1272,11 +1273,8 @@
+ 
+                       E_1(x) = \int_{x}^{\infty} e^{-t}/t dt
+ 
+-
+-
+     INPUT:
+ 
+-
+     -  ``x`` - a positive real number
+ 
+     -  ``n`` - (default: 0) a nonnegative integer; if
+@@ -1287,7 +1285,6 @@
+ 
+     OUTPUT:
+ 
+-
+     -  ``float`` - if n is 0 (the default) or
+ 
+     -  ``list`` - list of floats if n 0
