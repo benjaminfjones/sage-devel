@@ -1,0 +1,72 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1344026084 18000
+# Node ID d2e149f732150ee9fc5e7fff370f4cfaabf4f681
+# Parent  87758cd8de0d692603b0f0ddf90f8372e58a38a0
+Trac 3401: reviewer patch, cleans up whitespace and docstring formatting
+
+diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
+--- a/sage/functions/exp_integral.py
++++ b/sage/functions/exp_integral.py
+@@ -487,14 +487,16 @@
+ 
+ class Function_log_integral_offset(BuiltinFunction):
+     r"""
+-    The offset logarithmic integral, or eulerian logarithmic integral, `\operatorname{Li}(x)`
+-    is defined by
++    The offset logarithmic integral, or eulerian logarithmic integral,
++    `\operatorname{Li}(x)` is defined by
+ 
+     .. math::
+ 
+-        \operatorname{Li}(x) = \int_2^x \frac{dt}{\ln(t)} = \operatorname{li}(x)-\operatorname{li}(2)
++        \operatorname{Li}(x) = \int_2^x \frac{dt}{\ln(t)} =
++        \operatorname{li}(x)-\operatorname{li}(2)
+ 
+-    for `x > 1` and by analytic continuation for complex arguments `z` (see [AS]_ 5.1.3).
++    for `x > 1` and by analytic continuation for complex arguments `z` (see
++    [AS]_ 5.1.3).
+ 
+     So we have::
+ 
+@@ -553,19 +555,19 @@
+         sage: f = log_integral_offset(x)
+         sage: f.diff(x)
+         1/log(x)
+-        
++
+         sage: f.integrate(x)
+         -x*log_integral(2) + x*log_integral(x) - Ei(2*log(x))
+ 
+         sage: Li(x).integrate(x,2.0,4.5)
+         -2.5*log_integral(2) + 5.79932114741
+-        
++
+         sage: N(f.integrate(x,2.0,3.0))
+         0.601621785860587
+ 
+     Note:  Definite integration returns a part symbolic and part
+            numerical result.  This is because when Li(x) is evaluated it is
+-           passed as li(x)-li(2).           
++           passed as li(x)-li(2).
+ 
+     ALGORITHM:
+ 
+@@ -578,8 +580,6 @@
+     - mpmath documentation: `logarithmic-integral`_
+ 
+     .. _`logarithmic-integral`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
+-
+-
+     """
+ 
+     def __init__(self):
+@@ -594,7 +594,7 @@
+         """
+         BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
+                                  latex_name=r'log_integral_offset')
+-        
++
+     def _eval_(self,z):
+         """
+         EXAMPLES::

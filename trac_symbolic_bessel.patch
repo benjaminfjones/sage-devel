@@ -1,0 +1,295 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1349796135 25200
+# Node ID 6b926bd6c0546e3fac80550f26650ea2c5ed726b
+# Parent  d06cf4b2215d37d3a87a58f65ac53234502dd471
+[mq]: trac_symbolic_bessel
+
+diff --git a/sage/functions/special.py b/sage/functions/special.py
+--- a/sage/functions/special.py
++++ b/sage/functions/special.py
+@@ -968,13 +968,13 @@
+         raise NotImplementedError, "The Y-Bessel function is only implemented for the maxima and scipy algorithms"
+     else:
+         raise ValueError, "unknown algorithm '%s'"%algorithm
+-    
+-class Bessel():
++
++class Bessel(BuiltinFunction):
+     """
+     A class implementing the I, J, K, and Y Bessel functions.
+-    
++
+     EXAMPLES::
+-    
++
+         sage: g = Bessel(2); g
+         J_{2}
+         sage: print g
+@@ -1057,34 +1057,100 @@
+         self._system = algorithm
+         self._order = nu
+         self._type = typ
++        self._name = "bessel_%s" % typ
++        self._latex_name = r"bessel\_%s" % typ
+         prec = int(prec)
+         if prec < 0:
+             raise ValueError, "prec must be a positive integer"
+         self._prec = int(prec)
+ 
+-    def __str__(self):
++        # setup numerical eval function based on type and algorithm
++        if typ == 'J':
++            import mpmath
++        # TODO: partially apply below
++            self._evalf_func = mpmath_utils.call(mpmath.TODO, n, z, parent=parent)
++        # TODO other cases...
++
++        BuiltinFunction.__init__(self, self._name, nargs=2,
++                                 latex_name=self._latex_name,
++                                 conversions=dict(maxima=self._name))
++
++    def _eval_(self, n, z):
+         """
+-        Returns a string representation of this Bessel object.
++        EXAMPLES::
+ 
+-        TEST::
+ 
+-            sage: a = Bessel(1,'I')
+-            sage: str(a)
+-            'I-Bessel function of order 1'
+         """
+-        return self.type()+"-Bessel function of order "+str(self.order())
+-    
+-    def __repr__(self):
++        if not isinstance(n, Expression) and not isinstance(z, Expression) and \
++               (is_inexact(n) or is_inexact(z)):
++            coercion_model = sage.structure.element.get_coercion_model()
++            n, z = coercion_model.canonical_coercion(n, z)
++            return self._evalf_(n, z, parent(n))
++
++        # TODO: modify these for bessel
++        #z_zero = False
++        ## special case: z == 0 and n > 1
++        #if isinstance(z, Expression):
++        #    if z.is_trivial_zero():
++        #        z_zero = True # for later
++        #        if n > 1:
++        #            return 1/(n-1)
++        #else:
++        #    if not z:
++        #        z_zero = True
++        #        if n > 1:
++        #            return 1/(n-1)
++
++        ## special case: n == 0
++        #if isinstance(n, Expression):
++        #    if n.is_trivial_zero():
++        #        if z_zero:
++        #            return None
++        #        else:
++        #            return exp(-z)/z
++        #else:
++        #    if not n:
++        #        if z_zero:
++        #            return None
++        #        else:
++        #            return exp(-z)/z
++
++        return None # leaves the expression unevaluated
++
++    def _evalf_(self, n, z, parent=None):
+         """
+-        Returns a string representation of this Bessel object.
++        EXAMPLES::
++        """
++        return self._evalf_func(n, z, parent)
+ 
+-        TESTS::
++    def _derivative_(self, n, z, diff_param=None):
++        """
++        """
++        pass # TODO
+ 
+-            sage: Bessel(1,'I')
+-            I_{1}
+-        """
+-        return self.type()+"_{"+str(self.order())+"}"
+-    
++#    def __str__(self):
++#        """
++#        Returns a string representation of this Bessel object.
++#
++#        TEST::
++#
++#            sage: a = Bessel(1,'I')
++#            sage: str(a)
++#            'I-Bessel function of order 1'
++#        """
++#        return self.type()+"-Bessel function of order "+str(self.order())
++#
++#    def __repr__(self):
++#        """
++#        Returns a string representation of this Bessel object.
++#
++#        TESTS::
++#
++#            sage: Bessel(1,'I')
++#            I_{1}
++#        """
++#        return self.type()+"_{"+str(self.order())+"}"
++
+     def type(self):
+         """
+         Returns the type of this Bessel object.
+@@ -1096,7 +1162,7 @@
+             'K'
+         """
+         return self._type
+-    
++
+     def prec(self):
+         """
+         Returns the precision (in number of bits) used to represent this
+@@ -1139,72 +1205,76 @@
+             'pari'
+         """
+         return self._system
++#
++#    def __call__(self,z):
++#        """
++#        Implements evaluation of all the Bessel functions directly
++#        from the Bessel class. This essentially allows a Bessel object to
++#        behave like a function that can be invoked.
++#
++#        TESTS::
++#
++#            sage: Bessel(3,'K')(5.0)
++#            0.00829176841523093
++#            sage: Bessel(20,algorithm='maxima')(5.0)
++#            2.77033005213e-11
++#            sage: Bessel(20,prec=100)(5.0101010101010101)
++#            2.8809188227195382093062257967e-11
++#            sage: B = Bessel(2,'Y',algorithm='scipy',prec=50)
++#            sage: B(2.0)
++#            Traceback (most recent call last):
++#            ...
++#            ValueError: for the scipy algorithm the precision must be 53
++#        """
++#        nu = self.order()
++#        t = self.type()
++#        s = self.system()
++#        p = self.prec()
++#        if t == "I":
++#            return bessel_I(nu,z,algorithm=s,prec=p)
++#        if t == "J":
++#            return bessel_J(nu,z,algorithm=s,prec=p)
++#        if t == "K":
++#            return bessel_K(nu,z,algorithm=s,prec=p)
++#        if t == "Y":
++#            return bessel_Y(nu,z,algorithm=s,prec=p)
++#        
++#    def plot(self,a,b):
++#        """
++#        Enables easy plotting of all the Bessel functions directly
++#        from the Bessel class.
++#
++#        TESTS::
++#
++#            sage: plot(Bessel(2),3,4)
++#            sage: Bessel(2).plot(3,4)
++#            sage: P = Bessel(2,'I').plot(1,5)
++#            sage: P += Bessel(2,'J').plot(1,5)
++#            sage: P += Bessel(2,'K').plot(1,5)
++#            sage: P += Bessel(2,'Y').plot(1,5)
++#            sage: show(P)
++#        """
++#        nu = self.order()
++#        s = self.system()
++#        t = self.type()
++#        if t == "I":
++#            f = lambda z: bessel_I(nu,z,s)  
++#            P = plot(f,a,b)
++#        if t == "J":
++#            f = lambda z: bessel_J(nu,z,s)
++#            P = plot(f,a,b)
++#        if t == "K":
++#            f = lambda z: bessel_K(nu,z,s)
++#            P = plot(f,a,b)
++#        if t == "Y":
++#            f = lambda z: bessel_Y(nu,z,s)
++#            P = plot(f,a,b)
++#        return P
+ 
+-    def __call__(self,z):
+-        """
+-        Implements evaluation of all the Bessel functions directly
+-        from the Bessel class. This essentially allows a Bessel object to
+-        behave like a function that can be invoked.
++# TODO: bessel_X initialization
++# Q: should the order be specified at init time, or a parameter?
++#bessel_J = Bessel(...
+ 
+-        TESTS::
+-
+-            sage: Bessel(3,'K')(5.0)
+-            0.00829176841523093
+-            sage: Bessel(20,algorithm='maxima')(5.0)
+-            2.77033005213e-11
+-            sage: Bessel(20,prec=100)(5.0101010101010101)
+-            2.8809188227195382093062257967e-11
+-            sage: B = Bessel(2,'Y',algorithm='scipy',prec=50)
+-            sage: B(2.0)
+-            Traceback (most recent call last):
+-            ...
+-            ValueError: for the scipy algorithm the precision must be 53
+-        """
+-        nu = self.order()
+-        t = self.type()
+-        s = self.system()
+-        p = self.prec()
+-        if t == "I":
+-            return bessel_I(nu,z,algorithm=s,prec=p)
+-        if t == "J":
+-            return bessel_J(nu,z,algorithm=s,prec=p)
+-        if t == "K":
+-            return bessel_K(nu,z,algorithm=s,prec=p)
+-        if t == "Y":
+-            return bessel_Y(nu,z,algorithm=s,prec=p)
+-        
+-    def plot(self,a,b):
+-        """
+-        Enables easy plotting of all the Bessel functions directly
+-        from the Bessel class.
+-
+-        TESTS::
+-
+-            sage: plot(Bessel(2),3,4)
+-            sage: Bessel(2).plot(3,4)
+-            sage: P = Bessel(2,'I').plot(1,5)
+-            sage: P += Bessel(2,'J').plot(1,5)
+-            sage: P += Bessel(2,'K').plot(1,5)
+-            sage: P += Bessel(2,'Y').plot(1,5)
+-            sage: show(P)
+-        """
+-        nu = self.order()
+-        s = self.system()
+-        t = self.type()
+-        if t == "I":
+-            f = lambda z: bessel_I(nu,z,s)  
+-            P = plot(f,a,b)
+-        if t == "J":
+-            f = lambda z: bessel_J(nu,z,s)
+-            P = plot(f,a,b)
+-        if t == "K":
+-            f = lambda z: bessel_K(nu,z,s)
+-            P = plot(f,a,b)
+-        if t == "Y":
+-            f = lambda z: bessel_Y(nu,z,s)
+-            P = plot(f,a,b)
+-        return P
+-    
+ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
+     r"""
+     Default is a wrap of PARI's hyperu(alpha,beta,x) function.
