@@ -1,0 +1,24 @@
+Current API:
+
+sage: bessel_K(3,2)           ## bessel_K :: Int -> CC -> (Algo) -> CC
+0.64738539094...
+sage: bessel_Y(2,1.1)
+-1.4314714939590...
+sage: bessel_K(3,2,"scipy")
+0.64738539094...
+
+sage: Bessel(1,'I')           ## Bessel :: Int -> Type -> Function
+I_{1}
+sage: Bessel(2, typ='I')(pi)
+2.61849485263445
+
+
+New API:
+
+Bessel(1, 'J')  ## 1-parameter symbolic function
+bessel_J        ## 2-parameter symbolic function
+
+Initialization:
+
+bessel_J = Bessel('J')
+bessel_J(1, _) = Bessel(1, 'J')

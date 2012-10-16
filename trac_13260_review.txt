@@ -1,0 +1,33 @@
+Logging-On.rst:
+
+* Line 116 First sentence is redundant.
+
+Intro-Tutorial.rst:
+
+ * Line 117 'fix me by putting in some arithmetic!'
+
+Symbolics-and-Basic-Plotting.rst: looks good!
+
+Calculus.rst:
+
+ * Line 623: the command here goes off the edge of my screen with no option to horizontally scroll. Maybe it should
+             be wrapped manually?
+ * Line 737-738: bolding the first letter of each word like this doesn't seem to render properly in HTML.
+
+ Programming.rst:
+
+ * Line 272: "It would be best ..." sentence needs rewording
+ * Line 546: the warning here appears in the HTML docs, but the two blocks below don't, so that's confusing. I don't recall what
+   the skip directive actually does, but in this case it seems to leave the blocks omitted. 
+ * Line 338: I think you mean (all) not (any) here since any can mean "forall" or
+            "there exists" depending on context.
+ * Line 460: there is an extra `A` at the end of the sentence.
+
+Advanced-2DPlotting.rst:
+
+ * Line 173: This plot command also goes off the right side of my browser window
+ * Line 373: ditto
+ * Line 409: typsetting mistake
+ * Line 524: "multiples" -> "multiple"
+ * Line 592: "finetune" -> "fine-tune"
+

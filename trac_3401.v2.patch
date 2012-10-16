@@ -1,0 +1,682 @@
+# HG changeset patch
+# User Martin Cross <questors@sky.com>
+# Date 1344127927 -3600
+# Node ID 31bef0fe81b90563ad22b09c7939340ec86deefb
+# Parent  af8f9e1b0096da1da565ff40db79dbd2640b7c20
+* * *
+Trac 3401: add symbolic Li
+* * *
+Trac 3401: reviewer patch, cleans up whitespace and docstring formatting
+* * *
+trac 3401: adding symbolic Li
+
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -24,8 +24,7 @@
+ from log import (exp, log, ln, polylog, dilog, lambert_w)
+ 
+ 
+-from transcendental import (zeta, zetaderiv, zeta_symmetric,
+-                            Li, dickman_rho)
++from transcendental import (zeta, zetaderiv, zeta_symmetric, dickman_rho)
+ 
+ from special import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                      hypergeometric_U, Bessel,
+@@ -63,7 +62,8 @@
+ 
+ from min_max import max_symbolic, min_symbolic
+ 
+-from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li,
++from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
++                          log_integral_offset,
+                           sin_integral, cos_integral, Si, Ci,
+                           sinh_integral, cosh_integral, Shi, Chi,
+                           exponential_integral_1, Ei)
+diff --git a/sage/functions/exp_integral.py b/sage/functions/exp_integral.py
+--- a/sage/functions/exp_integral.py
++++ b/sage/functions/exp_integral.py
+@@ -485,6 +485,192 @@
+ 
+ li = log_integral = Function_log_integral()
+ 
++class Function_log_integral_offset(BuiltinFunction):
++    r"""
++    The offset logarithmic integral, or Eulerian logarithmic integral,
++    `\operatorname{Li}(x)` is defined by
++
++    .. math::
++
++        \operatorname{Li}(x) = \int_2^x \frac{dt}{ln(t)} =
++        \operatorname{li}(x)-\operatorname{li}(2)
++
++    for `x \ge 2`.
++
++    The offset logarithmic integral should also not be confused with the
++    polylogarithm (also denoted by `\operatorname{Li}(x)` ), which is
++    implemented as :class:`sage.functions.log.Function_polylog`.
++
++    `\operatorname{Li}(x)` is identical to `\operatorname{li}(x)` except that
++    the lower limit of integration is `2` rather than `0` to avoid the
++    singularity at `x = 1` of
++
++    .. math::
++
++        \frac{1}{ln(t)}
++
++    See :class:`Function_log_integral` for details of `\operatorname{li}(x)`.
++    Thus `\operatorname{Li}(x)` can also be represented by
++
++    .. math::
++
++        \operatorname{Li}(x) = \operatorname{li}(x)-\operatorname{li}(2)
++
++    So we have::
++
++        sage: li(4.5)-li(2.0)-Li(4.5)
++        0.000000000000000
++
++    `\operatorname{Li}(x)` is extended to complex arguments `z`
++    by analytic continuation (see [AS]_ 5.1.3)::
++
++        sage: Li(6.6+5.4*I)
++        3.97032201503632 + 2.62311237593572*I
++
++    The function `\operatorname{Li}` is an approximation for the number of
++    primes up to `x`. In fact, the famous Riemann Hypothesis is
++
++    .. math::
++
++        |\pi(x) - \operatorname{Li}(x)| \leq \sqrt{x} \log(x).
++
++    For "small" `x`, `\operatorname{Li}(x)` is always slightly bigger
++    than `\pi(x)`. However it is a theorem that there are very
++    large values of `x` (e.g., around `10^{316}`), such that
++    `\exists x: \pi(x) > \operatorname{Li}(x)`.  See "A new bound for the
++    smallest x with `\pi(x) > \operatorname{li}(x)`",
++    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285-1296.
++
++    Here is a test from the mpmath documentation.
++    There are 1,925,320,391,606,803,968,923 prime numbers less than 1e23.
++    The value of ``log_integral_offset(1e23)`` is very close to this::
++
++        sage: log_integral_offset(1e23)
++        1.92532039161405e21
++
++    EXAMPLES:
++
++    Numerical evaluation for real and complex arguments is handled using mpmath::
++
++        sage: N(log_integral_offset(3))
++        1.11842481454970
++        sage: N(log_integral_offset(3), digits=30)
++        1.11842481454969918803233347815
++        sage: log_integral_offset(ComplexField(100)(3+I))
++        1.2428254968641898308632562019 + 0.87232935488528370139883806779*I
++        sage: log_integral_offset(2)
++        0
++        sage: for n in range(1,7):
++        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), N(Li(10^n)))
++        10        4         5.12043572466980
++        100       25        29.0809778039621
++        1000      168       176.564494210035
++        10000     1229      1245.09205211927
++        100000    9592      9628.76383727068
++        1000000   78498     78626.5039956821
++
++    Symbolic derivatives are handled by Sage and integration by Maxima::
++
++        sage: x = var('x')
++        sage: f = log_integral_offset(x)
++        sage: f.diff(x)
++        1/log(x)
++
++        sage: f.integrate(x)
++        -x*log_integral(2) + x*log_integral(x) - Ei(2*log(x))
++
++        sage: Li(x).integrate(x,2.0,4.5)
++        -2.5*log_integral(2) + 5.79932114741
++
++        sage: N(f.integrate(x,2.0,3.0))
++        0.601621785860587
++
++    Note:  Definite integration returns a part symbolic and part
++           numerical result.  This is because when Li(x) is evaluated it is
++           passed as li(x)-li(2).
++
++    ALGORITHM:
++
++    Numerical evaluation is handled using mpmath, but symbolics are handled
++    by Sage and Maxima.
++
++    REFERENCES:
++
++    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
++    - mpmath documentation: `logarithmic-integral`_
++
++    .. _`logarithmic-integral`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
++    """
++
++    def __init__(self):
++        """
++        See the docstring for ``Function_log_integral-offset``.
++
++        EXAMPLES::
++
++            sage: log_integral_offset(3)
++            -log_integral(2) + log_integral(3)
++
++        """
++        BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
++                                 latex_name=r'log_integral_offset')
++
++    def _eval_(self,z):
++        """
++        EXAMPLES::
++
++            sage: z = var('z')
++            sage: log_integral_offset(z)
++            -log_integral(2) + log_integral(z)
++            sage: log_integral_offset(3.0)
++            1.11842481454970
++            sage: log_integral_offset(2)
++            0
++
++        """
++        if not isinstance(z,Expression) and is_inexact(z):
++            return self._evalf_(z,parent(z))
++        if z==2:
++            import sage.symbolic.ring
++            return sage.symbolic.ring.SR(0)
++        return li(z)-li(2)
++        # If we return:(li(z)-li(2)) we get correct symbolic integration.
++        # But on definite integration it returns x.xxxx-li(2).
++
++    def _evalf_(self, z, parent=None):
++        """
++        EXAMPLES::
++
++            sage: N(log_integral_offset(1e6))
++            78626.5039956821
++            sage: log_integral_offset(RealField(200)(1e6))
++            78626.503995682064427078066159058066548185351766843615873183
++            sage: li(4.5)-li(2.0)-Li(4.5)
++            0.000000000000000
++
++        """
++        import mpmath
++        return mpmath_utils_call(mpmath.li, z, offset=True, parent=parent)
++
++    def _derivative_(self, z, diff_param=None):
++        """
++        The derivative of `\operatorname{Li}(z) is `1/log(z)`.
++
++        EXAMPLES::
++
++            sage: x = var('x')
++            sage: f = log_integral_offset(x)
++            sage: f.diff(x)
++            1/log(x)
++
++            sage: f = log_integral_offset(x^2)
++            sage: f.diff(x)
++            2*x/log(x^2)
++
++        """
++        return 1/log(z)
++
++Li = log_integral_offset = Function_log_integral_offset()
+ 
+ class Function_sin_integral(BuiltinFunction):
+     r"""
+@@ -553,6 +739,7 @@
+         sage: integrate(sin(x)/x, x)
+         1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x)
+ 
++
+     Compare values of the functions `\operatorname{Si}(x)` and
+     `f(x) = (1/2)i \cdot \operatorname{Ei}(-ix) - (1/2)i \cdot
+     \operatorname{Ei}(ix) - \pi/2`, which are both anti-derivatives of
+diff --git a/sage/functions/transcendental.py b/sage/functions/transcendental.py
+--- a/sage/functions/transcendental.py
++++ b/sage/functions/transcendental.py
+@@ -31,7 +31,7 @@
+ from sage.rings.all import (is_RealNumber, RealField,
+                             is_ComplexNumber, ComplexField,
+                             ZZ, RR, RDF, CDF, prime_range)
+-                            
++
+ from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+ 
+ 
+@@ -43,17 +43,17 @@
+     def __init__(self):
+         r"""
+         Riemann zeta function at s with s a real or complex number.
+-        
++
+         INPUT:
+-        
++
+         -  ``s`` - real or complex number
+-        
++
+         If s is a real number the computation is done using the MPFR
+         library. When the input is not real, the computation is done using
+         the PARI C library.
+-        
++
+         EXAMPLES::
+-        
++
+             sage: zeta(x)
+             zeta(x)
+             sage: zeta(2)
+@@ -130,27 +130,27 @@
+     Completed function `\xi(s)` that satisfies
+     `\xi(s) = \xi(1-s)` and has zeros at the same points as the
+     Riemann zeta function.
+-    
++
+     INPUT:
+-    
+-    
++
++
+     -  ``s`` - real or complex number
+-    
+-    
++
++
+     If s is a real number the computation is done using the MPFR
+     library. When the input is not real, the computation is done using
+     the PARI C library.
+-    
++
+     More precisely,
+-    
++
+     .. math::
+-    
+-                xi(s) = \gamma(s/2 + 1) * (s-1) * \pi^{-s/2} * \zeta(s).     
+-    
+-    
+-    
++
++                xi(s) = \gamma(s/2 + 1) * (s-1) * \pi^{-s/2} * \zeta(s).
++
++
++
+     EXAMPLES::
+-    
++
+         sage: zeta_symmetric(0.7)
+         0.497580414651127
+         sage: zeta_symmetric(1-0.7)
+@@ -165,7 +165,7 @@
+         0.0000489893483255687 + 4.40457132572236e-20*I
+         sage: zeta_symmetric(0.5 + i*14.2)
+         -0.0000868931282620101 + 7.11507675693612e-20*I
+-    
++
+     REFERENCE:
+ 
+     - I copied the definition of xi from
+@@ -177,135 +177,32 @@
+     R = s.parent()
+     if s == 1:  # deal with poles, hopefully
+         return R(0.5)
+-    
++
+     return (s/2 + 1).gamma()   *    (s-1)   * (R.pi()**(-s/2))  *  s.zeta()
+ 
+-
+-def Li(x, eps_rel=None, err_bound=False):
+-    r"""
+-    Return value of the function Li(x) as a real double field element.
+-    
+-    This is the function
+-    
+-    .. math::
+-    
+-                \int_2^{x} dt / \log(t).     
+-    
+-    
+-    
+-    The function Li(x) is an approximation for the number of primes up
+-    to `x`. In fact, the famous Riemann Hypothesis is
+-    equivalent to the statement that for `x \geq 2.01` we have
+-    
+-    .. math::
+-    
+-                 |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).     
+-    
+-    
+-    For "small" `x`, `Li(x)` is always slightly bigger
+-    than `\pi(x)`. However it is a theorem that there are (very
+-    large, e.g., around `10^{316}`) values of `x` so
+-    that `\pi(x) > Li(x)`. See
+-    "A new bound for the smallest x with `\pi(x) > li(x)`",
+-    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285-1296.
+-    
+-    ALGORITHM: Computed numerically using GSL.
+-    
+-    INPUT:
+-    
+-    
+-    -  ``x`` - a real number = 2.
+-    
+-    
+-    OUTPUT:
+-    
+-    
+-    -  ``x`` - a real double
+-    
+-    
+-    EXAMPLES::
+-    
+-        sage: Li(2)
+-        0.0
+-        sage: Li(5)
+-        2.58942452992
+-        sage: Li(1000)
+-        176.56449421
+-        sage: Li(10^5)
+-        9628.76383727
+-        sage: prime_pi(10^5)
+-        9592
+-        sage: Li(1)
+-        Traceback (most recent call last):
+-        ...
+-        ValueError: Li only defined for x at least 2.    
+-    
+-    ::
+-    
+-        sage: for n in range(1,7):
+-        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), Li(10^n))
+-        10        4         5.12043572467       
+-        100       25        29.080977804        
+-        1000      168       176.56449421        
+-        10000     1229      1245.09205212       
+-        100000    9592      9628.76383727       
+-        1000000   78498     78626.5039957
+-    """
+-    x = float(x)
+-    if x < 2:
+-        raise ValueError, "Li only defined for x at least 2."
+-    if eps_rel:
+-        ans = numerical_integral(_one_over_log, 2, float(x),
+-                             eps_rel=eps_rel)
+-    else:
+-        ans = numerical_integral(_one_over_log, 2, float(x))
+-    if err_bound:
+-        return real_double.RDF(ans[0]), ans[1]
+-    else:
+-        return real_double.RDF(ans[0])
+-    # Old PARI version -- much much slower
+-    #x = RDF(x)
+-    #return RDF(gp('intnum(t=2,%s,1/log(t))'%x))
+-
+ import math
+-def _one_over_log(t):
+-    """
+-    Internal function for quick computation of log integrals.
+-    
+-    TESTS::
+-    
+-        sage: from sage.functions.transcendental import _one_over_log
+-        sage: _one_over_log(e)
+-        1.0
+-        sage: _one_over_log(2)
+-        1.4426950408889634
+-        sage: Li(100)
+-        29.080977804
+-    """
+-    return 1/math.log(t)
+-
+ from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
+ 
+ class DickmanRho(BuiltinFunction):
+     r"""
+     Dickman's function is the continuous function satisfying the
+     differential equation
+-    
++
+     .. math::
+-    
+-         x \rho'(x) + \rho(x-1) = 0 
+-    
++
++         x \rho'(x) + \rho(x-1) = 0
++
+     with initial conditions `\rho(x)=1` for
+     `0 \le x \le 1`. It is useful in estimating the frequency
+     of smooth numbers as asymptotically
+-    
++
+     .. math::
+-    
+-         \Psi(a, a^{1/s}) \sim a \rho(s) 
+-    
++
++         \Psi(a, a^{1/s}) \sim a \rho(s)
++
+     where `\Psi(a,b)` is the number of `b`-smooth
+     numbers less than `a`.
+-    
++
+     ALGORITHM:
+ 
+     Dickmans's function is analytic on the interval
+@@ -314,12 +211,12 @@
+     about `n+1/2` using the differential equation stated above.
+     As high precision arithmetic may be needed for intermediate results
+     the computed series are cached for later use.
+-    
++
+     Simple explicit formulas are used for the intervals [0,1] and
+     [1,2].
+-    
++
+     EXAMPLES::
+-    
++
+         sage: dickman_rho(2)
+         0.306852819440055
+         sage: dickman_rho(10)
+@@ -327,11 +224,11 @@
+         sage: dickman_rho(10.00000000000000000000000000000000000000)
+         2.77017183772595898875812120063434232634e-11
+         sage: plot(log(dickman_rho(x)), (x, 0, 15))
+-    
++
+     AUTHORS:
+ 
+     - Robert Bradshaw (2008-09)
+-    
++
+     REFERENCES:
+ 
+     - G. Marsaglia, A. Zaman, J. Marsaglia. "Numerical
+@@ -353,11 +250,11 @@
+         """
+         self._cur_prec = 0
+         BuiltinFunction.__init__(self, "dickman_rho", 1)
+-    
++
+     def _eval_(self, x):
+         """
+         EXAMPLES::
+-        
++
+             sage: [dickman_rho(n) for n in [1..10]]
+             [1.00000000000000, 0.306852819440055, 0.0486083882911316, 0.00491092564776083, 0.000354724700456040, 0.0000196496963539553, 8.74566995329392e-7, 3.23206930422610e-8, 1.01624828273784e-9, 2.77017183772596e-11]
+             sage: dickman_rho(0)
+@@ -377,7 +274,7 @@
+         n = x.floor()
+         if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
+             self._cur_prec = rel_prec = x.parent().prec()
+-            # Go a bit beyond so we're not constantly re-computing. 
++            # Go a bit beyond so we're not constantly re-computing.
+             max = x.parent()(1.1)*x + 10
+             abs_prec = (-self.approximate(max).log2() + rel_prec + 2*max.log2()).ceil()
+             self._f = {}
+@@ -391,17 +288,17 @@
+         This function returns the power series about `n+1/2` used
+         to evaluate Dickman's function. It is scaled such that the interval
+         `[n,n+1]` corresponds to x in `[-1,1]`.
+-        
++
+         INPUT:
+-        
++
+         -  ``n`` - the lower endpoint of the interval for which
+            this power series holds
+-        
++
+         -  ``abs_prec`` - the absolute precision of the
+            resulting power series
+-        
++
+         EXAMPLES::
+-        
++
+             sage: f = dickman_rho.power_series(2, 20); f
+             -9.9376e-8*x^11 + 3.7722e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
+             sage: f(-1), f(0), f(1)
+@@ -416,20 +313,20 @@
+         Compute the power series giving Dickman's function on [n, n+1], by
+         recursion in n. For internal use; self.power_series() is a wrapper
+         around this intended for the user.
+-        
++
+         INPUT:
+-        
++
+         -  ``n`` - the lower endpoint of the interval for which
+            this power series holds
+-        
++
+         -  ``abs_prec`` - the absolute precision of the
+            resulting power series
+-        
++
+         -  ``cache_ring`` - for internal use, caches the power
+            series at this precision.
+-        
++
+         EXAMPLES::
+-        
++
+             sage: f = dickman_rho.power_series(2, 20); f
+             -9.9376e-8*x^11 + 3.7722e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
+         """
+@@ -451,8 +348,8 @@
+             f = self._compute_power_series(n-1, abs_prec, cache_ring)
+             # integrand = f / (2n+1 + x)
+             # We calculate this way because the most significant term is the constant term,
+-            # and so we want to push the error accumulation and remainder out to the least 
+-            # significant terms. 
++            # and so we want to push the error accumulation and remainder out to the least
++            # significant terms.
+             integrand = f.reverse().quo_rem(PolynomialRealDense(f.parent(), [1, 2*n+1]))[0].reverse()
+             integrand = integrand.truncate_abs(RR(2)**-abs_prec)
+             iintegrand = integrand.integral()
+@@ -464,26 +361,26 @@
+             if cache_ring is not None:
+                 self._f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
+             return ff.change_ring(RealField(rel_prec))
+-            
++
+     def approximate(self, x, parent=None):
+         r"""
+         Approximate using de Bruijn's formula
+-        
++
+         .. math::
+-        
+-             \rho(x) \sim \frac{exp(-x \xi + Ei(\xi))}{\sqrt{2\pi x}\xi} 
+-        
++
++             \rho(x) \sim \frac{exp(-x \xi + Ei(\xi))}{\sqrt{2\pi x}\xi}
++
+         which is asymptotically equal to Dickman's function, and is much
+         faster to compute.
+-        
++
+         REFERENCES:
+ 
+         - N. De Bruijn, "The Asymptotic behavior of a function
+           occurring in the theory of primes." J. Indian Math Soc. v 15.
+           (1951)
+-        
++
+         EXAMPLES::
+-        
++
+             sage: dickman_rho.approximate(10)
+             2.41739196365564e-11
+             sage: dickman_rho(10)
+@@ -500,5 +397,5 @@
+             xi -= y/dydxi
+             y = (exp(xi)-1.0)/xi - x
+         return (-x*xi + RR(xi).eint()).exp() / (sqrt(2*pi*x)*xi)
+-            
++
+ dickman_rho = DickmanRho()
+diff --git a/sage/misc/sagedoc.py b/sage/misc/sagedoc.py
+--- a/sage/misc/sagedoc.py
++++ b/sage/misc/sagedoc.py
+@@ -968,7 +968,7 @@
+     ``search_src(string, interact=False).splitlines()`` gives the
+     number of matches. ::
+ 
+-        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 9
++        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 10
+         True
+         sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+         True
+@@ -990,7 +990,7 @@
+         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
+         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
+         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
+-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 9
++        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 10
+         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
+         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
+diff --git a/sage/symbolic/random_tests.py b/sage/symbolic/random_tests.py
+--- a/sage/symbolic/random_tests.py
++++ b/sage/symbolic/random_tests.py
+@@ -232,19 +232,20 @@
+     EXAMPLES::
+ 
+         sage: from sage.symbolic.random_tests import *
+-        sage: set_random_seed(2)
++        sage: set_random_seed(1)
+         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
+-        (euler_gamma - v3^(-e) + (v2 - e^(-e/v2))^(((2.85879036573 -
+-        1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi
+-        - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 -
+-        0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3
+-        + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi +
+-        e)*elliptic_eu(khinchin*v2, 1.4656989704 + 0.863754357069*I)
++        (v1^(0.97134084277 + 0.195868299334*I)/csc(-pi + v1^2 + v3) + sgn(1/
++        ((-v3 - 0.760455994772 - 0.554367254855*I)*erf(v3 + 0.982759757946 - 
++        0.0352136502348*I)) + binomial(arccoth(v1^pi), 0.760455994772 + 
++        0.554367254855*I) + arccosh(2*v2 - (v2 + 0.841911550437 - 
++        0.303757179824*I)/sinh_integral(pi) + arccoth(v3 + 0.530133230474 + 
++        0.532140303485*I))))/v2
+         sage: random_expr(5, verbose=True) # random
+-        About to apply dilog to [1]
+-        About to apply arcsec to [0]
+-        About to apply <built-in function add> to [1/6*pi^2, arcsec(0)]
+-        1/6*pi^2 + arcsec(0)
++        About to apply <built-in function inv> to [31]
++        About to apply sgn to [v1]
++        About to apply <built-in function add> to [1/31, sgn(v1)]
++        sgn(v1) + 1/31
++
+     """
+     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
+     if ncoeffs is None:
