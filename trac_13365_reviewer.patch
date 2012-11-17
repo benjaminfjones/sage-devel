@@ -1,0 +1,106 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1350418401 25200
+# Node ID 8c4c5ac752fd51a238ba9ca76183b09578615049
+# Parent  30d4804e3b45bfc037a5e1c0c46b5f062e144953
+[mq]: trac_13365_reviewer.patch
+
+diff --git a/sage/groups/perm_gps/permgroup.py b/sage/groups/perm_gps/permgroup.py
+--- a/sage/groups/perm_gps/permgroup.py
++++ b/sage/groups/perm_gps/permgroup.py
+@@ -1753,25 +1753,25 @@
+             pr2 = PermutationGroupMorphism_from_gap(D, other, G.Projection(2))
+             return D, iota1, iota2, pr1, pr2
+ 
+-    def semidirect_product(self,N,mapping, check = True):
++    def semidirect_product(self, N, mapping, check=True):
+         r"""
+         The semidirect product of ``self`` with ``N``.
+ 
+         INPUT:
+ 
+-        - ``N`` - A group which is acted on by ``self`` and is 
+-          isomorphic to the normal subgroup of the outputted semidirect
++        - ``N`` - A group which is acted on by ``self`` and
++          naturally embedds as a normal subgroup of the returned semidirect
+           product.
+ 
+-        - ``mapping`` - A pair of lists that together define a 
++        - ``mapping`` - A pair of lists that together define a
+           homomorphism, `\phi :` self `\rightarrow` Aut(N), by giving,
+           in the second list, the images of the generators of ``self``
+           in the order given in the first list.
+ 
+         - ``check`` - A boolean that, if set to False, will skip the
+-          initial tests. This may be beneficial for large ``N``, as
+-          in such cases the fourth test will be very time inefficient.
+-          Set to True by default.
++          initial tests which are made on ``mapping``. This may be beneficial
++          for large ``N``, since in such cases the injectivity test can be
++          expensive. Set to True by default.
+ 
+         OUTPUT:
+ 
+@@ -1789,18 +1789,17 @@
+ 
+                 (h_1,n_1)(h_2,n_2) = (h_{1}h_{2}, n_{1}^{h_2}n_2)
+ 
+-        This particular method is a wrapping of GAP's 
+-        ``SemidirectProduct`` command. The outputted permutation group
+-        is built upon a permutation representation of the semidirect
+-        product of ``self`` and ``N`` on a set of size `\mid N \mid`.
+-        The generators of ``N`` are given as their right regular
+-        representations, while the generators of ``self`` are defined
+-        by the underlying action of ``self`` on ``N``. It should be
+-        noted that the defining action is not always faithful, and in
+-        this case the inputted representations of the generators of
+-        ``self`` are placed on additional letters and adjoined to the
+-        output's generators of ``self``.
+-        
++        This function is a wrapper for GAP's ``SemidirectProduct``
++        command. The permutation group returned is built upon a
++        permutation representation of the semidirect product of ``self``
++        and ``N`` on a set of size `\mid N \mid`. The generators of
++        ``N`` are given as their right regular representations, while the
++        generators of ``self`` are defined by the underlying action of
++        ``self`` on ``N``. It should be noted that the defining action is
++        not always faithful, and in this case the inputted representations
++        of the generators of ``self`` are placed on additional letters
++        and adjoined to the output's generators of ``self``.
++
+ 
+         EXAMPLES:
+ 
+@@ -1835,7 +1834,7 @@
+             sage: C2 = CyclicPermutationGroup(2)
+             sage: Q = DiCyclicGroup(3)
+             sage: a = Q.gens()[0]; b=Q.gens()[1].inverse()
+-            sage: alpha = PermutationGroupMorphism_im_gens(Q,Q,[a,b])                     
++            sage: alpha = PermutationGroupMorphism_im_gens(Q,Q,[a,b])
+             sage: S2 = C2.semidirect_product(Q,[[(1,2)],[alpha]])
+             sage: S1.is_isomorphic(S2)
+             True
+@@ -1861,12 +1860,12 @@
+         TESTS::
+ 
+             sage: C3 = CyclicPermutationGroup(3)
+-            sage: D4 = DihedralGroup(4)         
++            sage: D4 = DihedralGroup(4)
+             sage: alpha = PermutationGroupMorphism(C3,C3,[C3("(1,3,2)")])
+             sage: alpha1 = PermutationGroupMorphism(C3,C3,[C3("(1,2,3)")])
+             sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,2)], [alpha,alpha1]]);s
+             (<type 'exceptions.ValueError'>, 'the inputted generator list must generate the calling group, [(1, 2, 3, 4), (1, 2)] does not generate Dihedral group of order 8 as a permutation group')
+-            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha]]);s       
++            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha]]);s
+             (<type 'exceptions.ValueError'>, 'the list of generators and the list of morphisms they map to must be of equal length')
+             sage: alpha2 = PermutationGroupMorphism(C3, D4, [D4("()")])
+             sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha, alpha2]]);s
+@@ -1888,7 +1887,7 @@
+ 
+             if not PermutationGroup(gens = mapping[0]) == self:
+                 return ValueError, 'the inputted generator list must generate the calling group, %s does not generate %s'%(mapping[0], self._repr_())
+-    
++
+             if len(mapping[0]) != len(mapping[1]):
+                 return ValueError, 'the list of generators and the list of morphisms they map to must be of equal length'
+ 
