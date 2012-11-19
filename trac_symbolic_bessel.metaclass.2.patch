@@ -1,0 +1,890 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1353303890 28800
+# Node ID a15b2a0d86d0c48ca8c33de6689b31a49148385c
+# Parent  d06cf4b2215d37d3a87a58f65ac53234502dd471
+Trac 4102: implement symbolic Bessel functions
+
+diff --git a/sage/functions/all.py b/sage/functions/all.py
+--- a/sage/functions/all.py
++++ b/sage/functions/all.py
+@@ -8,7 +8,7 @@
+                    arctan2, atan2)
+ 
+ from hyperbolic import ( tanh, sinh, cosh, coth, sech, csch,
+-                         asinh, acosh, atanh, acoth, asech, acsch, 
++                         asinh, acosh, atanh, acoth, asech, acsch,
+                          arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch )
+ 
+ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, 'csch': sinh, 'coth': tanh}
+@@ -26,8 +26,8 @@
+ 
+ from transcendental import (zeta, zetaderiv, zeta_symmetric, dickman_rho)
+ 
+-from special import (bessel_I, bessel_J, bessel_K, bessel_Y,
+-                     hypergeometric_U, Bessel,
++from special import (Bessel, bessel_I, bessel_J, bessel_K, bessel_Y,
++                     hypergeometric_U,
+                      spherical_bessel_J, spherical_bessel_Y,
+                      spherical_hankel1, spherical_hankel2,
+                      spherical_harmonic, jacobi,
+@@ -36,7 +36,7 @@
+                      elliptic_f, elliptic_ec, elliptic_eu,
+                      elliptic_kc, elliptic_pi, elliptic_j,
+                      airy_ai, airy_bi)
+-                        
++
+ from orthogonal_polys import (chebyshev_T,
+                               chebyshev_U,
+                               gen_laguerre,
+diff --git a/sage/functions/special.py b/sage/functions/special.py
+--- a/sage/functions/special.py
++++ b/sage/functions/special.py
+@@ -384,11 +384,15 @@
+ from sage.plot.plot import plot
+ from sage.rings.real_mpfr import RealField
+ from sage.rings.complex_field import ComplexField
+-from sage.misc.sage_eval import sage_eval
+ from sage.rings.all import ZZ, RR, RDF
+ from sage.functions.other import real, imag, log_gamma
+-from sage.symbolic.function import BuiltinFunction
++from sage.symbolic.function import BuiltinFunction, is_inexact
++from sage.symbolic.expression import Expression
++from sage.structure.coerce import parent
++import sage.structure.element
+ from sage.calculus.calculus import maxima
++from sage.libs.mpmath import utils as mpmath_utils
++from sage.misc.sage_eval import sage_eval
+ 
+ _done = False
+ def _init():
+@@ -555,8 +559,8 @@
+ 
+     EXAMPLES::
+ 
+-        sage: n(bessel_J(3,10,"maxima"))
+-        0.0583793793051...
++        sage: elliptic_e(0.5, 0.1)
++        0.498011394499
+         sage: spherical_hankel2(2,i)
+         -e
+     """
+@@ -570,8 +574,8 @@
+ 
+             TESTS::
+ 
+-                sage: n(bessel_J(3,10,"maxima"))
+-                0.0583793793051...
++                sage: elliptic_e(0.5, 0.1)
++                0.498011394499
+                 sage: spherical_hankel2(2,x)
+                 (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
+             """
+@@ -653,558 +657,319 @@
+    return RDF(meval("airy_bi(%s)"%RDF(x)))
+ 
+ 
+-def bessel_I(nu,z,algorithm = "pari",prec=53):
+-    r"""
+-    Implements the "I-Bessel function", or "modified Bessel function,
+-    1st kind", with index (or "order") nu and argument z.
+-    
+-    INPUT:
+-    
+-    
+-    -  ``nu`` - a real (or complex, for pari) number
+-    
+-    -  ``z`` - a real (positive) algorithm - "pari" or
+-       "maxima" or "scipy" prec - real precision (for PARI only)
+-    
+-    
+-    DEFINITION::
+-    
+-            Maxima:
+-                             inf
+-                            ====   - nu - 2 k  nu + 2 k
+-                            \     2          z
+-                             >    -------------------
+-                            /     k! Gamma(nu + k + 1)
+-                            ====
+-                            k = 0
+-        
+-            PARI:
+-            
+-                             inf
+-                            ====   - 2 k  2 k
+-                            \     2      z    Gamma(nu + 1)
+-                             >    -----------------------
+-                            /       k! Gamma(nu + k + 1)
+-                            ====
+-                            k = 0
+-        
+-            
+-    
+-    Sometimes ``bessel_I(nu,z)`` is denoted
+-    ``I_nu(z)`` in the literature.
+-    
+-    .. warning::
++def Bessel(*args, **kwds):
++    """
++    A class factory that produces symbolic I, J, K, and Y Bessel functions. There
++    are several ways to call this function:
+ 
+-       In Maxima (the manual says) i0 is deprecated but
+-       ``bessel_i(0,*)`` is broken. (Was fixed in recent CVS patch
+-       though.)
+-    
+-    EXAMPLES::
+-    
+-        sage: bessel_I(1,1,"pari",500)
+-        0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
+-        sage: bessel_I(1,1)
+-        0.565159103992485
+-        sage: bessel_I(2,1.1,"maxima")  
+-        0.16708949925104...
+-        sage: bessel_I(0,1.1,"maxima") 
+-        1.32616018371265...
+-        sage: bessel_I(0,1,"maxima")   
+-        1.2660658777520...
+-        sage: bessel_I(1,1,"scipy")
+-        0.565159103992...
++        - ``Bessel(order, type)``
++        - ``Bessel(order)`` -- type defaults to 'J'
++        - ``Bessel(order, typ=T)``
++        - ``Bessel(typ=T)`` -- order is unspecified, this is a 2-parameter function
++        - ``Bessel()`` -- order is unspecified, type is 'J'
+ 
+-    Check whether the return value is real whenever the argument is real (#10251)::
+-    
+-        sage: bessel_I(5, 1.5, algorithm='scipy') in RR
+-        True
+-        
+-    """
+-    if algorithm=="pari":
+-        from sage.libs.pari.all import pari
+-        try:
+-            R = RealField(prec)
+-            nu = R(nu)
+-            z = R(z)
+-        except TypeError:
+-            C = ComplexField(prec)
+-            nu = C(nu)
+-            z = C(z)
+-            K = C
+-        K = z.parent()
+-        return K(pari(nu).besseli(z, precision=prec))
+-    elif algorithm=="scipy":
+-        if prec != 53:
+-            raise ValueError, "for the scipy algorithm the precision must be 53"
+-        import scipy.special
+-        ans = str(scipy.special.iv(float(nu),complex(real(z),imag(z))))
+-        ans = ans.replace("(","")
+-        ans = ans.replace(")","")
+-        ans = ans.replace("j","*I")
+-        ans = sage_eval(ans)
+-        return real(ans) if z in RR else ans # Return real value when arg is real
+-    elif algorithm == "maxima":
+-        if prec != 53:
+-            raise ValueError, "for the maxima algorithm the precision must be 53"
+-        return sage_eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
+-    else:
+-        raise ValueError, "unknown algorithm '%s'"%algorithm
+-        
+-def bessel_J(nu,z,algorithm="pari",prec=53):
+-    r"""
+-    Return value of the "J-Bessel function", or "Bessel function, 1st
+-    kind", with index (or "order") nu and argument z.
+-    
+-    ::
+-    
+-            Defn:
+-            Maxima:
+-                             inf
+-                            ====          - nu - 2 k  nu + 2 k
+-                            \     (-1)^k 2           z
+-                             >    -------------------------
+-                            /        k! Gamma(nu + k + 1)
+-                            ====
+-                            k = 0
+-        
+-            PARI:
+-            
+-                             inf
+-                            ====          - 2k    2k
+-                            \     (-1)^k 2      z    Gamma(nu + 1)
+-                             >    ----------------------------
+-                            /         k! Gamma(nu + k + 1)
+-                            ====
+-                            k = 0
+-            
+-    
+-    Sometimes bessel_J(nu,z) is denoted J_nu(z) in the literature.
+-    
+-    .. warning::
++    where `order` can be any integer and T must be one of the strings 'I', 'J',
++    'K', or 'Y'.
+ 
+-       Inaccurate for small values of z.
+-    
+-    EXAMPLES::
+-    
+-        sage: bessel_J(2,1.1)
+-        0.136564153956658
+-        sage: bessel_J(0,1.1)
+-        0.719622018527511
+-        sage: bessel_J(0,1) 
+-        0.765197686557967
+-        sage: bessel_J(0,0)
+-        1.00000000000000
+-        sage: bessel_J(0.1,0.1)
+-        0.777264368097005
+-    
+-    We check consistency of PARI and Maxima::
+-    
+-        sage: n(bessel_J(3,10,"maxima"))
+-        0.0583793793051...
+-        sage: n(bessel_J(3,10,"pari"))  
+-        0.0583793793051868
+-        sage: bessel_J(3,10,"scipy")
+-        0.0583793793052...
++    See the EXAMPLES below.
+ 
+-    Check whether the return value is real whenever the argument is real (#10251)::                                                                                                                                                           
+-        sage: bessel_J(5, 1.5, algorithm='scipy') in RR                                                                      
+-        True
+-    """
+-    
+-    if algorithm=="pari":
+-        from sage.libs.pari.all import pari
+-        try:
+-            R = RealField(prec)
+-            nu = R(nu)
+-            z = R(z)
+-        except TypeError:
+-            C = ComplexField(prec)
+-            nu = C(nu)
+-            z = C(z)
+-            K = C
+-        if nu == 0:
+-            nu = ZZ(0)
+-        K = z.parent()
+-        return K(pari(nu).besselj(z, precision=prec))
+-    elif algorithm=="scipy":
+-        if prec != 53:
+-            raise ValueError, "for the scipy algorithm the precision must be 53"
+-        import scipy.special
+-        ans = str(scipy.special.jv(float(nu),complex(real(z),imag(z))))
+-        ans = ans.replace("(","")
+-        ans = ans.replace(")","")
+-        ans = ans.replace("j","*I")
+-        ans = sage_eval(ans)
+-        return real(ans) if z in RR else ans
+-    elif algorithm == "maxima":
+-        if prec != 53:
+-            raise ValueError, "for the maxima algorithm the precision must be 53"
+-        return maxima_function("bessel_j")(nu, z)
+-    else:
+-        raise ValueError, "unknown algorithm '%s'"%algorithm
++    EXAMPLES:
+ 
+-def bessel_K(nu,z,algorithm="pari",prec=53):
+-    r"""
+-    Implements the "K-Bessel function", or "modified Bessel function,
+-    2nd kind", with index (or "order") nu and argument z. Defn::
+-    
+-                    pi*(bessel_I(-nu, z) - bessel_I(nu, z))
+-                   ----------------------------------------
+-                                2*sin(pi*nu)
+-            
+-    
+-    if nu is not an integer and by taking a limit otherwise.
+-    
+-    Sometimes bessel_K(nu,z) is denoted K_nu(z) in the literature. In
+-    PARI, nu can be complex and z must be real and positive.
+-    
+-    EXAMPLES::
+-    
+-        sage: bessel_K(3,2,"scipy")
+-        0.64738539094...
+-        sage: bessel_K(3,2)
+-        0.64738539094...
+-        sage: bessel_K(1,1)
+-        0.60190723019...
+-        sage: bessel_K(1,1,"pari",10)
+-        0.60
+-        sage: bessel_K(1,1,"pari",100)
+-        0.60190723019723457473754000154
++    Construction of Bessel functions with various orders and types::
+ 
+-    TESTS::
++        sage: Bessel()
++        bessel_J
++        sage: Bessel(1)
++        bessel_{1,J}
++        sage: Bessel(1, 'Y')
++        bessel_{1,Y}
++        sage: Bessel(-2, 'Y')
++        bessel_{-2,Y}
++        sage: Bessel(typ='K')
++        bessel_K
++        sage: Bessel(0, typ='I')
++        bessel_{0,I}
+ 
+-        sage: bessel_K(2,1.1, algorithm="maxima")
+-        Traceback (most recent call last):
+-        ...
+-        NotImplementedError: The K-Bessel function is only implemented for the pari and scipy algorithms
++        sage: f = Bessel(4, 'Y')
++        sage: f.get_type()
++        'Y'
++        sage: f.get_order()
++        4
++        sage: f.get_system()
++        'mpmath'
+ 
+-        Check whether the return value is real whenever the argument is real (#10251)::
++    Evaluation::
+ 
+-        sage: bessel_K(5, 1.5, algorithm='scipy') in RR
++        sage: f = Bessel(1)
++        sage: f(3.0)
++        0.339058958525936
++        sage: f(3).n(digits=50)
++        0.33905895852593645892551459720647889697308041819801
++
++        sage: g = Bessel(typ='J')
++        sage: g(1,3)
++        bessel_J(1, 3)
++        sage: g(2, 3+I).n()
++        0.634160370148554 + 0.0253384000032695*I
++        sage: abs(numerical_integral(1/pi*cos(3*sin(x)), 0.0, pi)[0] - Bessel(0, 'J')(3.0)) < 1e-15
+         True
+ 
++    Symbolic calculus::
++
++        sage: f(x) = Bessel(0, 'J')(x)
++        sage: derivative(f, x)
++        x |--> bessel_{-1,J}(x)
++        sage: derivative(f, x, x)
++        x |--> bessel_{-1,J}(x)/x + bessel_{-2,J}(x)
++
++    Conversion to other systems::
++
++        sage: x,y = var('x,y')
++        sage: f = maxima(Bessel(typ='K')(x,y))
++        sage: f.derivative('x')
++        %pi*csc(%pi*x)*('diff(bessel_i(-x,y),x,1)-'diff(bessel_i(x,y),x,1))/2-%pi*bessel_k(x,y)*cot(%pi*x)
++        sage: f.derivative('y')
++        -(bessel_k(x+1,y)+bessel_k(x-1,y))/2
++
++    Plotting::
++
++        sage: f(x) = Bessel(0)(x); f
++        x |--> bessel_{0,J}(x)
++        sage: plot(f, (x, 1, 10))
++
++        sage: plot([ Bessel(i, 'J') for i in range(5) ], 2, 10)
++
++        sage: G = Graphics()
++        sage: for i in range(5): G += plot(Bessel(i), 0, 4*pi, rgbcolor=hue(sin(pi*i/10)))
++        sage: show(G)
++
++    A recreation of Abramowitz and Stegun Figure 9.1::
++
++        sage: G  = plot(Bessel(0, 'J'), 0, 15, color='black')
++        sage: G += plot(Bessel(0, 'Y'), 0, 15, color='black')
++        sage: G += plot(Bessel(1, 'J'), 0, 15, color='black', linestyle='dotted')
++        sage: G += plot(Bessel(1, 'Y'), 0, 15, color='black', linestyle='dotted')
++        sage: show(G, ymin=-1, ymax=1)
++
+     """
+-    if algorithm=="scipy":
+-        if prec != 53:
+-            raise ValueError, "for the scipy algorithm the precision must be 53"
+-        import scipy.special
+-        ans = str(scipy.special.kv(float(nu),float(z)))
+-        ans = ans.replace("(","")
+-        ans = ans.replace(")","")
+-        ans = ans.replace("j","*I")
+-        ans = sage_eval(ans)
+-        return real(ans) if z in RR else ans
+-    elif algorithm == 'pari':
+-        from sage.libs.pari.all import pari
+-        try:
+-            R = RealField(prec)
+-            nu = R(nu)
+-            z = R(z)
+-        except TypeError:
+-            C = ComplexField(prec)
+-            nu = C(nu)
+-            z = C(z)
+-            K = C
+-        K = z.parent()
+-        return K(pari(nu).besselk(z, precision=prec))
+-    elif algorithm == 'maxima':
+-        raise NotImplementedError, "The K-Bessel function is only implemented for the pari and scipy algorithms"
++
++    # conversions dictionary for the Bessel function
++    _conversions_dict = { 'I': { 'maxima': 'bessel_i', 'mathematica': 'BesselI' }
++                        , 'J': { 'maxima': 'bessel_j', 'mathematica': 'BesselJ' }
++                        , 'K': { 'maxima': 'bessel_k', 'mathematica': 'BesselK' }
++                        , 'Y': { 'maxima': 'bessel_y', 'mathematica': 'BesselY' } }
++
++    class_attrs = {} # storage for attributes of the class to be created
++
++    # determine the order and type of function from the arguments and keywords
++    if 'typ' in kwds:
++        class_attrs['_type'] = kwds['typ']
+     else:
+-        raise ValueError, "unknown algorithm '%s'"%algorithm
+-    
++        class_attrs['_type'] = 'J'
+ 
+-def bessel_Y(nu,z,algorithm="maxima", prec=53):
+-    r"""
+-    Implements the "Y-Bessel function", or "Bessel function of the 2nd
+-    kind", with index (or "order") nu and argument z.
+-    
+-    .. note::
++    if len(args) == 0: # no order specified
++        class_attrs['_order'] = None
++        class_attrs['_nargs'] = 2
++        class_attrs['_name']= "bessel_%s" % class_attrs['_type']
++        class_attrs['_latex_name'] = r"bessel\_%s" % class_attrs['_type']
++    elif len(args) == 1: # order is specified
++        class_attrs['_order'] = args[0]
++        class_attrs['_nargs'] = 1
++        class_attrs['_name'] = "bessel_{%s,%s}" % (class_attrs['_order'], class_attrs['_type'])
++        class_attrs['_latex_name'] = r"bessel\_\{%s,%s\}" % (class_attrs['_order'], class_attrs['_type'])
++    elif len(args) == 2: # both order and type are positional arguments
++        class_attrs['_order'] = args[0]
++        class_attrs['_type'] = args[1]
++        class_attrs['_nargs'] = 1
++        class_attrs['_name'] = "bessel_{%s,%s}" % (class_attrs['_order'], class_attrs['_type'])
++        class_attrs['_latex_name'] = r"bessel\_\{%s,%s\}" % (class_attrs['_order'], class_attrs['_type'])
++    else:
++        raise TypeError("at most two positional arguments may be specified, "
++                       +"see the docstring for Bessel")
+ 
+-       Currently only prec=53 is supported.
+-    
+-    Defn::
+-    
+-                    cos(pi n)*bessel_J(nu, z) - bessel_J(-nu, z)
+-                   -------------------------------------------------
+-                                     sin(nu*pi)
+-    
+-    if nu is not an integer and by taking a limit otherwise.
+-    
+-    Sometimes bessel_Y(n,z) is denoted Y_n(z) in the literature.
+-    
+-    This is computed using Maxima by default.
+-    
+-    EXAMPLES::
+-    
+-        sage: bessel_Y(2,1.1,"scipy")
+-        -1.4314714939...
+-        sage: bessel_Y(2,1.1)   
+-        -1.4314714939590...
+-        sage: bessel_Y(3.001,2.1) 
+-        -1.0299574976424...
++    # check the function type
++    if not (class_attrs['_type'] in ['I', 'J', 'K', 'Y']):
++        raise ValueError, "type must be one of I, J, K, Y"
+ 
+-    TESTS::
++    # record the numerical evaluation system
++    if 'algorithm' in kwds:
++        class_attrs['_system'] = kwds['algorithm']
++    else:
++        class_attrs['_system'] = 'mpmath'
+ 
+-        sage: bessel_Y(2,1.1, algorithm="pari")
+-        Traceback (most recent call last):
+-        ...
+-        NotImplementedError: The Y-Bessel function is only implemented for the maxima and scipy algorithms
+-    """
+-    if algorithm=="scipy":
+-        if prec != 53:
+-            raise ValueError, "for the scipy algorithm the precision must be 53"
+-        import scipy.special
+-        ans = str(scipy.special.yv(float(nu),complex(real(z),imag(z))))
+-        ans = ans.replace("(","")
+-        ans = ans.replace(")","")
+-        ans = ans.replace("j","*I")
+-        ans = sage_eval(ans)
+-        return real(ans) if z in RR else ans
+-    elif algorithm == "maxima":
+-        if prec != 53:
+-            raise ValueError, "for the maxima algorithm the precision must be 53"
+-        return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
+-    elif algorithm == "pari":
+-        raise NotImplementedError, "The Y-Bessel function is only implemented for the maxima and scipy algorithms"
++    # determine the numerical evaluation method
++    if class_attrs['_system'] == 'mpmath':
++        import mpmath
++        mpmath_bessel_functions = { 'I': mpmath.besseli, 'J': mpmath.besselj,
++                                    'K': mpmath.besselk, 'Y': mpmath.bessely }
++        mpf = mpmath_bessel_functions[class_attrs['_type']]
++        if class_attrs['_nargs'] == 1:
++            def f(self, z, **kwds):
++                return mpmath_utils.call(mpf, self._order, z, **kwds)
++        else:
++            def f(self, n, z, **kwds):
++                return mpmath_utils.call(mpf, n, z, **kwds)
++        class_attrs['_evalf_'] = f
++    elif class_attrs['_system'] == 'maxima':
++        raise NotImplementedError("maxima evaluation is not implemented yet")
++    elif class_attrs['_system'] == 'scipy':
++        raise NotImplementedError("scipy evaluation is not implemented yet")
+     else:
+-        raise ValueError, "unknown algorithm '%s'"%algorithm
+-    
+-class Bessel():
+-    """
+-    A class implementing the I, J, K, and Y Bessel functions.
+-    
+-    EXAMPLES::
+-    
+-        sage: g = Bessel(2); g
+-        J_{2}
+-        sage: print g
+-        J-Bessel function of order 2
+-        sage: g.plot(0,10)
++        raise NotImplementedError("unknown algorithm specified")
+ 
+-    ::
++    # conversions are only defined when the index is
++    # unspecified since the Bessel functions in Maxima take two parameters:
++    # the index and the argument.
++    if class_attrs['_nargs'] == 2:
++        class_attrs['_conversions'] = _conversions_dict[class_attrs['_type']]
++    else:
++        class_attrs['_conversions'] = {}
+ 
+-        sage: Bessel(2, typ='I')(pi)
+-        2.61849485263445
+-        sage: Bessel(2, typ='J')(pi)
+-        0.485433932631509
+-        sage: Bessel(2, typ='K')(pi)
+-        0.0510986902537926
+-        sage: Bessel(2, typ='Y')(pi)
+-        -0.0999007139289404
+-    """
+-    def __init__(self, nu, typ = "J", algorithm = None, prec = 53):
++    def __init__(self, attrs):
+         """
+-        Initializes new instance of the Bessel class.
++        Initializes new instance of a Bessel class.
+ 
+         INPUT:
+ 
+-         - ``typ`` -- (default: J) the type of Bessel function: 'I', 'J', 'K'
+-           or 'Y'.
+-
+-         - ``algorithm`` -- (default: maxima for type Y, pari for other types)
+-           algorithm to use to compute the Bessel function: 'pari', 'maxima' or
+-           'scipy'.  Note that type K is not implemented in Maxima and type Y
+-           is not implemented in PARI.
+-
+-         - ``prec`` -- (default: 53) precision in bits of the Bessel function.
+-           Only supported for the PARI algorithm.
++            - ``attrs`` - a dictionary containing self attributes to set during
++                          initialization. This should include at least the keys:
++                          '_type', '_order', '_nargs', '_name', '_latex_name',
++                          '_system', and '_nargs'.
+ 
+         EXAMPLES::
+ 
+             sage: g = Bessel(2); g
+-            J_{2}
+-            sage: Bessel(1,'I')
+-            I_{1}
+-            sage: Bessel(6, prec=120)(pi)
+-            0.014545966982505560573660369604001804
+-            sage: Bessel(6, algorithm="pari")(pi)
+-            0.0145459669825056
++            bessel_{2,J}
++            sage: Bessel(0, 'Y')
++            bessel_{0,Y}
++        """
++        for k in ['_type', '_order', '_nargs', '_name', '_latex_name', '_system',
++                  '_conversions']:
++            setattr(self, k, attrs[k])
+ 
+-        For the Bessel J-function, Maxima returns a symbolic result.  For
+-        types I and Y, we always get a numeric result::
++        BuiltinFunction.__init__(self, self._name, nargs=self._nargs,
++                                 latex_name=self._latex_name,
++                                 conversions=self._conversions)
+ 
+-            sage: b = Bessel(6, algorithm="maxima")(pi); b
+-            bessel_j(6, pi)
+-            sage: b.n(53)
+-            0.0145459669825056
+-            sage: Bessel(6, typ='I', algorithm="maxima")(pi)
+-            0.0294619840059568
+-            sage: Bessel(6, typ='Y', algorithm="maxima")(pi)
+-            -4.33932818939038
++    def _eval_(self, *args):
++        """
++        EXAMPLES::
+ 
+-        SciPy usually gives less precise results::
++            sage: Bessel(0, 'J')(1)
++            bessel_{0,J}(1)
++            sage: Bessel(0, 'J')(1.0)
++            0.765197686557966
++            sage: Bessel(1, 'Y')(x)
++            bessel_{1,Y}(x)
++        """
++        if (len(args) == 1 and
++           (not isinstance(args[0], Expression) and is_inexact(args[0]))):
++                return self._evalf_(args[0], parent=parent(args[0]))
++        elif (len(args) == 2 and
++             (not isinstance(args[0], Expression) and
++             not isinstance(args[1], Expression) and
++             (is_inexact(args[0]) or is_inexact(args[1])))):
++                coercion_model = sage.structure.element.get_coercion_model()
++                n, z = coercion_model.canonical_coercion(*args)
++                return self._evalf_(n, z, parent=parent(n))
++        return None # leaves the expression unevaluated
+ 
+-            sage: Bessel(6, algorithm="scipy")(pi)
+-            0.0145459669825000...
++    def _derivative_(self, z, diff_param=None):
++        r"""
++        The derivative of any of the Bessel functions of order `n` and argument `z`
++        is:
+ 
+-        TESTS::
++        .. math::
+ 
+-            sage: Bessel(1,'Z')
+-            Traceback (most recent call last):
+-            ...
+-            ValueError: typ must be one of I, J, K, Y
++            \left\( \frac{1}{z} \frac{d}{dz} \right\)^k \left\( z^n J_n(z) \right\) = z^{n-k} J_{n-k}(z)
++
++        Specializing to `k = 1` we get:
++
++        ..math::
++
++            \frac{d}{dz} (z^n J_n(z)) = z^n J_{n-1}(z)
++
++        It follows that,
++
++        ..math::
++
++            \frac{d}{dz} J_n(z) = \frac{1}{z^n} \left\(z^n J_{n-1}(z) - n z^{n-1} J_n(z) \right\)
++
++        The same formula holds for 'J' replaced by 'Y', 'K', or 'I'.
++
++        EXAMPLES::
++
++            sage: f(x) = Bessel(10)(x)
++            sage: derivative(f, x)
++            x |--> -10*bessel_{10,J}(x)/x + bessel_{9,J}(x)
++            sage: f(x) = Bessel(10)(Bessel(-2)(x))
++            sage: derivative(f, x)
++            x |--> -(10*bessel_{10,J}(bessel_{-2,J}(x))/bessel_{-2,J}(x) - bessel_{9,J}(bessel_{-2,J}(x)))*(2*bessel_{-2,J}(x)/x + bessel_{-3,J}(x))
+         """
+-        if not (typ in ['I', 'J', 'K', 'Y']):
+-            raise ValueError, "typ must be one of I, J, K, Y"
++        n = self._order
++        if n is None:
++            raise NotImplementedError("derivative of two parameter Bessel function is not implemented")
++        return Bessel(n-1, self._type)(z) - n/z*Bessel(n, self._type)(z)
+ 
+-        # Did the user ask for the default algorithm?
+-        if algorithm is None:
+-            if typ == 'Y':
+-                algorithm = 'maxima'
+-            else:
+-                algorithm = 'pari'
+-
+-        self._system = algorithm
+-        self._order = nu
+-        self._type = typ
+-        prec = int(prec)
+-        if prec < 0:
+-            raise ValueError, "prec must be a positive integer"
+-        self._prec = int(prec)
+-
+-    def __str__(self):
+-        """
+-        Returns a string representation of this Bessel object.
+-
+-        TEST::
+-
+-            sage: a = Bessel(1,'I')
+-            sage: str(a)
+-            'I-Bessel function of order 1'
+-        """
+-        return self.type()+"-Bessel function of order "+str(self.order())
+-    
+-    def __repr__(self):
+-        """
+-        Returns a string representation of this Bessel object.
+-
+-        TESTS::
+-
+-            sage: Bessel(1,'I')
+-            I_{1}
+-        """
+-        return self.type()+"_{"+str(self.order())+"}"
+-    
+-    def type(self):
++    def get_type(self):
+         """
+         Returns the type of this Bessel object.
+ 
+-        TEST::
++        EXAMPLES::
+ 
+             sage: a = Bessel(3,'K')
+-            sage: a.type()
++            sage: a.get_type()
+             'K'
+         """
+         return self._type
+-    
+-    def prec(self):
+-        """
+-        Returns the precision (in number of bits) used to represent this
+-        Bessel function.
+ 
+-        TESTS::
+-
+-            sage: a = Bessel(3,'K')
+-            sage: a.prec()
+-            53
+-            sage: B = Bessel(20,prec=100); B
+-            J_{20}
+-            sage: B.prec()
+-            100
+-        """
+-        return self._prec
+-
+-    def order(self):
++    def get_order(self):
+         """
+         Returns the order of this Bessel function.
+ 
+-        TEST::
++        EXAMPLES::
+ 
+             sage: a = Bessel(3,'K')
+-            sage: a.order()
++            sage: a.get_order()
+             3
+         """
+         return self._order
+ 
+-    def system(self):
++    def get_system(self):
+         """
+-        Returns the package used, e.g. Maxima, PARI, or SciPy, to compute with
++        Returns the package used, e.g. 'mpmath', to compute with
+         this Bessel function.
+ 
+-        TESTS::
++        EXAMPLES::
+ 
+-            sage: Bessel(20,algorithm='maxima').system()
+-            'maxima'
+-            sage: Bessel(20,prec=100).system()
+-            'pari'
++            sage: Bessel(20).get_system()
++            'mpmath'
+         """
+         return self._system
+ 
+-    def __call__(self,z):
+-        """
+-        Implements evaluation of all the Bessel functions directly
+-        from the Bessel class. This essentially allows a Bessel object to
+-        behave like a function that can be invoked.
++    # populate the new classes attributes
++    class_attrs.update({'__init__': __init__,
++                        '_eval_': _eval_,
++                        '_derivative_': _derivative_,
++                        'get_type': get_type,
++                        'get_system': get_system,
++                        'get_order': get_order})
+ 
+-        TESTS::
++    # last step: create the new subclass of BuiltinFunction and return its
++    # instantiation.
++    if class_attrs['_order'] is None:
++        class_name = "Bessel_Function_%s" % (class_attrs['_type'],)
++    else:
++        class_name = "Bessel_Function_%d_%s" % (class_attrs['_order'], class_attrs['_type'])
++    new_class = type(class_name, (BuiltinFunction,), class_attrs)
++    return new_class(class_attrs)
+ 
+-            sage: Bessel(3,'K')(5.0)
+-            0.00829176841523093
+-            sage: Bessel(20,algorithm='maxima')(5.0)
+-            2.77033005213e-11
+-            sage: Bessel(20,prec=100)(5.0101010101010101)
+-            2.8809188227195382093062257967e-11
+-            sage: B = Bessel(2,'Y',algorithm='scipy',prec=50)
+-            sage: B(2.0)
+-            Traceback (most recent call last):
+-            ...
+-            ValueError: for the scipy algorithm the precision must be 53
+-        """
+-        nu = self.order()
+-        t = self.type()
+-        s = self.system()
+-        p = self.prec()
+-        if t == "I":
+-            return bessel_I(nu,z,algorithm=s,prec=p)
+-        if t == "J":
+-            return bessel_J(nu,z,algorithm=s,prec=p)
+-        if t == "K":
+-            return bessel_K(nu,z,algorithm=s,prec=p)
+-        if t == "Y":
+-            return bessel_Y(nu,z,algorithm=s,prec=p)
+-        
+-    def plot(self,a,b):
+-        """
+-        Enables easy plotting of all the Bessel functions directly
+-        from the Bessel class.
++# Construct top level Bessel functions of the 4 types
++bessel_I = Bessel(typ='I')
++bessel_J = Bessel(typ='J')
++bessel_K = Bessel(typ='K')
++bessel_Y = Bessel(typ='Y')
+ 
+-        TESTS::
+-
+-            sage: plot(Bessel(2),3,4)
+-            sage: Bessel(2).plot(3,4)
+-            sage: P = Bessel(2,'I').plot(1,5)
+-            sage: P += Bessel(2,'J').plot(1,5)
+-            sage: P += Bessel(2,'K').plot(1,5)
+-            sage: P += Bessel(2,'Y').plot(1,5)
+-            sage: show(P)
+-        """
+-        nu = self.order()
+-        s = self.system()
+-        t = self.type()
+-        if t == "I":
+-            f = lambda z: bessel_I(nu,z,s)  
+-            P = plot(f,a,b)
+-        if t == "J":
+-            f = lambda z: bessel_J(nu,z,s)
+-            P = plot(f,a,b)
+-        if t == "K":
+-            f = lambda z: bessel_K(nu,z,s)
+-            P = plot(f,a,b)
+-        if t == "Y":
+-            f = lambda z: bessel_Y(nu,z,s)
+-            P = plot(f,a,b)
+-        return P
+-    
+ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
+     r"""
+     Default is a wrap of PARI's hyperu(alpha,beta,x) function.
