@@ -1,7 +1,7 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
 # Date 1356654134 28800
-# Node ID ec811819c4666594fa9d805c0a0e87b2371c69b8
+# Node ID eb9efa4564e2b4f095c2abc0796e81fed6ec4510
 # Parent  3df9be5aadd2e4159e69bdf911d38784cb6fa130
 Trac 4102: Implement symbolic Bessel functions
 
@@ -44,7 +44,7 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 new file mode 100644
 --- /dev/null
 +++ b/sage/functions/bessel.py
-@@ -0,0 +1,791 @@
+@@ -0,0 +1,892 @@
 +r"""
 +Bessel Functions
 +
@@ -121,6 +121,53 @@ new file mode 100644
 +   linear combinations are also known as Bessel functions of the third
 +   kind; they are two linearly independent solutions of Bessel's
 +   differential equation. They are named for Hermann Hankel.
++
++EXAMPLES:
++
++    Evaluate the Bessel J function symbolically and numerically::
++
++        sage: bessel_J(0, x)
++        bessel_J(0, x)
++        sage: bessel_J(0, 0)
++        bessel_J(0, 0)
++        sage: bessel_J(0, x).diff(x)
++        1/2*bessel_J(-1, x) - 1/2*bessel_J(1, x)
++
++        sage: N(bessel_J(0, 0), digits = 20)
++        1.0000000000000000000
++        sage: find_root(bessel_J(0,x), 0, 5)
++        2.404825557695773
++
++    Plot the Bessel J function::
++
++        sage: f(x) = Bessel(0)(x); f
++        x |--> bessel_J(0, x)
++        sage: plot(f, (x, 1, 10))
++
++    Visualize the Bessel Y function on the complex plane::
++
++        sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5))
++
++    Evaluate a combination of Bessel functions::
++
++        sage: f(x) = bessel_J(1, x) - bessel_Y(0, x)
++        sage: f(pi)
++        bessel_J(1, pi) - bessel_Y(0, pi)
++        sage: f(pi).n()
++        -0.0437509653365599
++        sage: f(pi).n(digits=50)
++        -0.043750965336559909054985168023342675387737118378169
++
++    Symbolically solve a second order differential equation with initial
++    conditions `y(1) = a` and `y'(1) = b` in terms of Bessel functions::
++
++        sage: y = function('y', x)
++        sage: a, b = var('a, b')
++        sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
++        sage: f = desolve(diffeq, y, [1, a, b]); f
++        (a*bessel_Y(1, 1) + b*bessel_Y(0, 1))*bessel_J(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1)) - (a*bessel_J(1, 1) + b*bessel_J(0, 1))*bessel_Y(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1))
++
++    For more examples, see the docstring for :meth:`Bessel`.
 +
 +AUTHORS:
 +
@@ -298,8 +345,8 @@ new file mode 100644
 +
 +        EXAMPLES::
 +
-+            sage: latex(bessel_J(1, z))
-+            TODO
++            sage: latex(bessel_J(1, x))
++            \operatorname{J_{1}}(x)
 +        """
 +        return r"\operatorname{J_{%s}}(%s)" % (latex(n), latex(z))
 +
@@ -344,7 +391,7 @@ new file mode 100644
 +        sage: f.diff(x)
 +        1/2*bessel_Y(1, x) - 1/2*bessel_Y(3, x)
 +
-+    High preceision and complex valued inputs::
++    High preceision and complex valued inputs (fixes Trac issue #4230)::
 +
 +        sage: bessel_Y(0, 1).n(128)
 +        0.088256964215676957982926766023515162828
@@ -373,7 +420,6 @@ new file mode 100644
 +            bessel_Y(0, x)
 +        """
 +        BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
-+                                 latex_name=r'bessel_Y',
 +                                 conversions=dict(maxima='bessel_y', mathematica='BesselY'))
 +
 +    def _eval_(self, n, x):
@@ -417,6 +463,17 @@ new file mode 100644
 +            x |--> 1/2*bessel_Y(9, x) - 1/2*bessel_Y(11, x)
 +        """
 +        return (bessel_Y(n-1, x) - bessel_Y(n+1, x))/Integer(2)
++
++    def _print_latex_(self, n, z):
++        """
++        Custom _print_latex_ method.
++
++        EXAMPLES::
++
++            sage: latex(bessel_Y(1, x))
++            \operatorname{Y_{1}}(x)
++        """
++        return r"\operatorname{Y_{%s}}(%s)" % (latex(n), latex(z))
 +
 +bessel_Y = Function_Bessel_Y()
 +
@@ -494,7 +551,6 @@ new file mode 100644
 +            bessel_I(1, x)
 +        """
 +        BuiltinFunction.__init__(self, "bessel_I", nargs=2,
-+                                 latex_name=r'bessel_I',
 +                                 conversions=dict(maxima='bessel_i', mathematica='BesselI'))
 +
 +    def _eval_(self, n, x):
@@ -547,6 +603,17 @@ new file mode 100644
 +            z |--> 1/2*bessel_I(9, x) + 1/2*bessel_I(11, x)
 +        """
 +        return (bessel_I(n-1, x) + bessel_I(n+1, x))/Integer(2)
++
++    def _print_latex_(self, n, z):
++        """
++        Custom _print_latex_ method.
++
++        EXAMPLES::
++
++            sage: latex(bessel_I(1, x))
++            \operatorname{I_{1}}(x)
++        """
++        return r"\operatorname{I_{%s}}(%s)" % (latex(n), latex(z))
 +
 +bessel_I = Function_Bessel_I()
 +
@@ -638,7 +705,6 @@ new file mode 100644
 +            bessel_K
 +        """
 +        BuiltinFunction.__init__(self, "bessel_K", nargs=2,
-+                                 latex_name=r'bessel_K',
 +                                 conversions=dict(maxima='bessel_k', mathematica='BesselK'))
 +
 +    def _eval_(self, n, x):
@@ -687,6 +753,17 @@ new file mode 100644
 +            x |--> 1/2*bessel_K(9, x) + 1/2*bessel_K(11, x)
 +        """
 +        return (bessel_K(n-1, x) + bessel_K(n+1, x))/Integer(2)
++
++    def _print_latex_(self, n, z):
++        """
++        Custom _print_latex_ method.
++
++        EXAMPLES::
++
++            sage: latex(bessel_K(1, x))
++            \operatorname{K_{1}}(x)
++        """
++        return r"\operatorname{K_{%s}}(%s)" % (latex(n), latex(z))
 +
 +bessel_K = Function_Bessel_K()
 +
@@ -753,12 +830,13 @@ new file mode 100644
 +        sage: derivative(f, x, x)
 +        x |--> 1/4*bessel_J(-2, x) - 1/2*bessel_J(0, x) + 1/4*bessel_J(2, x)
 +
-+    Verifying that `J_n` satisfies Bessel's differential equation symbolically using the
-+    recurance relation `\frac{2n}{2} J_n(x) = J_{n-1}(x) + J_{n+1}(x)`::
++    Verify that `J_0` satisfies Bessel's differential equation numerically
++    using the `test_relation()` method::
 +
-+        sage: a = var('a')
-+        sage: y(x) = bessel_J(a, x)
-+        sage: diffeq = x^2*derivative(y,x,x) + x*derivative(y,x) + (x^2 - a^2)*y == 0
++        sage: y = bessel_J(0, x)
++        sage: diffeq = x^2*derivative(y,x,x) + x*derivative(y,x) + x^2*y == 0
++        sage: diffeq.test_relation(proof=False)
++        True
 +
 +    Conversion to other systems::
 +
@@ -768,6 +846,29 @@ new file mode 100644
 +        %pi*csc(%pi*x)*('diff(bessel_i(-x,y),x,1)-'diff(bessel_i(x,y),x,1))/2-%pi*bessel_k(x,y)*cot(%pi*x)
 +        sage: f.derivative('y')
 +        -(bessel_k(x+1,y)+bessel_k(x-1,y))/2
++
++    Compute the particular solution to Bessel's Differential Equation that
++    satisfies `y(1) = 1` and `y'(1) = 1`, then verify the initial conditions
++    and plot it::
++
++        sage: y = function('y', x)
++        sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
++        sage: f = desolve(diffeq, y, [1, 1, 1]); f
++        (bessel_J(0, 1) + bessel_J(1, 1))*bessel_Y(0, x)/(bessel_Y(0, 1)*bessel_J(1, 1) - bessel_Y(1, 1)*bessel_J(0, 1)) - (bessel_Y(0, 1) + bessel_Y(1, 1))*bessel_J(0, x)/(bessel_Y(0, 1)*bessel_J(1, 1) - bessel_Y(1, 1)*bessel_J(0, 1))
++
++        sage: f.subs(x=1).n() # numerical verification
++        1.00000000000000
++        sage: fp = f.diff(x)
++        sage: fp.subs(x=1).n()
++        1.00000000000000
++
++        sage: f.subs(x=1).simplify_full() # symbolic verification
++        1
++        sage: fp = f.diff(x)
++        sage: fp.subs(x=1).simplify_full()
++        1
++
++        sage: plot(f, (x,0,5))
 +
 +    Plotting::
 +
