@@ -3,6 +3,12 @@
 # Author: Benjamin Jones <benjaminfjones@gmail.com>
 # License: Apache 2.0
 # This script downloads and installs Sage (http://www.sagemath.org) for you.
+#
+# This script requires that you have either `aria2c` or `wget` installed in
+# order to download the sage source tarball.
+#
+# Usage: $ ./sage-from-source.sh 5.5.beta3
+#
 
 # break if any command has exit status != 0
 set -e
