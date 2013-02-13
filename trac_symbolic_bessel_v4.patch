@@ -1,8 +1,8 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
 # Date 1356654134 28800
-# Node ID e1dd18db6252bb5f62cec1ed184184a11beb39ba
-# Parent  ec1fb07db6e23f9fbd4c34f0d48198d08ec76473
+# Node ID 13528e004a0a1e7e6552421b2488b32ba47cdf51
+# Parent  ca877a1fdc06f49f74e422f648ed5c05fea1a570
 Trac 4102: Implement symbolic Bessel functions
 
 diff --git a/doc/en/reference/functions.rst b/doc/en/reference/functions.rst
@@ -44,7 +44,7 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 new file mode 100644
 --- /dev/null
 +++ b/sage/functions/bessel.py
-@@ -0,0 +1,918 @@
+@@ -0,0 +1,925 @@
 +r"""
 +Bessel Functions
 +
@@ -71,9 +71,9 @@ new file mode 100644
 +
 +   for an arbitrary real number `\alpha` (the order).
 +
-+-  In this module, `J_\alpha` denotes the unqiue solution of Bessel's equation
++-  In this module, `J_\alpha` denotes the unique solution of Bessel's equation
 +   which is non-singular at `x = 0`. This function is known as the Bessel
-+   Function of the First Kind. This function also arrises as a special case
++   Function of the First Kind. This function also arises as a special case
 +   of the hypergeometric function `{}_0F_1`:
 +
 +   .. math::
@@ -109,9 +109,9 @@ new file mode 100644
 +-  It follows from Bessel's differential equation that the derivative of
 +   `J_n(x)` with respect to `x` is:
 +
-+    ..math::
++   .. math::
 +
-+        \frac{d}{dx} J_n(x) = \frac{1}{x^n} \left\(x^n J_{n-1}(x) - n x^{n-1} J_n(z) \right\)
++       \frac{d}{dx} J_n(x) = \frac{1}{x^n} \left\(x^n J_{n-1}(x) - n x^{n-1} J_n(z) \right\)
 +
 +-  Another important formulation of the two linearly independent
 +   solutions to Bessel's equation are the Hankel functions
@@ -380,17 +380,22 @@ new file mode 100644
 +
 +class Function_Bessel_Y(BuiltinFunction):
 +    r"""
-+    The Bessel Y function.
++    The Bessel Y functions, also known as the Bessel functions of the second
++    kind, Weber functions, or Neumann functions.
++
++    `Y_\alpha(z)` is a holomorphic function of `z` on the complex plane,
++    cut along the negative real axis. It is singular at `z = 0`. When `z`
++    is fixed, `Y_\alpha(z)` is an entire function of the order `\alpha`.
 +
 +    DEFINITION:
 +
-+    .. math:
++    .. math::
 +
-+        bessel\_Y(n, z) = Y_n(z) = ...
++        Y_n(z) = \frac{J_\alpha(z) \cos(\alpha z) - J_{-\alpha}(z)}{\sin(\alpha z)}
 +
-+    The derivative with respect to `z` is:
++    Its derivative with respect to `z` is:
 +
-+    ..math::
++    .. math::
 +
 +        \frac{d}{dz} Y_n(z) = \frac{1}{z^n} \left\(z^n Y_{n-1}(z) - n z^{n-1} Y_n(z) \right\)
 +
@@ -405,6 +410,8 @@ new file mode 100644
 +        bessel_Y(n, x)
 +        sage: bessel_Y(2, I).n()
 +        1.03440456978312 - 0.135747669767038*I
++        sage: bessel_Y(0, 0).n()
++        -infinity
 +
 +    Examples of symbolic manipulation::
 +
@@ -417,7 +424,7 @@ new file mode 100644
 +        sage: f.diff(x)
 +        1/2*bessel_Y(1, x) - 1/2*bessel_Y(3, x)
 +
-+    High preceision and complex valued inputs (fixes Trac issue #4230)::
++    High preceision and complex valued inputs (see :trac:`4230`)::
 +
 +        sage: bessel_Y(0, 1).n(128)
 +        0.088256964215676957982926766023515162828
@@ -511,7 +518,7 @@ new file mode 100644
 +
 +    .. math::
 +
-+        \operatorname{bessel\_I}(\alpha, x) = I_\alpha(x) = i^{-\alpha} J_\alpha(ix)
++        I_\alpha(x) = i^{-\alpha} J_\alpha(ix)
 +
 +    EXAMPLES::
 +
@@ -649,7 +656,7 @@ new file mode 100644
 +
 +    DEFINITION:
 +
-+    .. math:
++    .. math::
 +
 +        \operatorname{bessel\_K}(\alpha, x) = K_\alpha(x) = ...
 +
@@ -704,14 +711,14 @@ new file mode 100644
 +
 +    TESTS:
 +
-+    Verfify that Trac #3426 is fixed:
++    Verify that :trac:`3426` is fixed:
 +
 +    The Bessel K function can be evaluated numerically at complex orders::
 +
 +        sage: bessel_K(10 * I, 10).n()
 +        9.82415743819925e-8
 +
-+    For a fixed imaginary order and increasin, real, second component the
++    For a fixed imaginary order and increasing, real, second component the
 +    value of Bessel K is exponentially decaying::
 +
 +        sage: for x in [10, 20, 50, 100, 200]: print bessel_K(5*I, x).n()
@@ -799,7 +806,7 @@ new file mode 100644
 +
 +def Bessel(*args, **kwds):
 +    """
-+    A factory function that produces symbolic I, J, K, and Y Bessel functions. There
++    A function factory that produces symbolic I, J, K, and Y Bessel functions. There
 +    are several ways to call this function:
 +
 +        - ``Bessel(order, type)``
@@ -857,7 +864,7 @@ new file mode 100644
 +        x |--> 1/4*bessel_J(-2, x) - 1/2*bessel_J(0, x) + 1/4*bessel_J(2, x)
 +
 +    Verify that `J_0` satisfies Bessel's differential equation numerically
-+    using the `test_relation()` method::
++    using the ``test_relation()`` method::
 +
 +        sage: y = bessel_J(0, x)
 +        sage: diffeq = x^2*derivative(y,x,x) + x*derivative(y,x) + x^2*y == 0
@@ -1281,7 +1288,7 @@ diff --git a/sage/functions/special.py b/sage/functions/special.py
  AUTHORS:
  
  - David Joyner and William Stein
-@@ -652,559 +603,6 @@
+@@ -664,559 +615,6 @@
     _init()
     return RDF(meval("airy_bi(%s)"%RDF(x)))
  

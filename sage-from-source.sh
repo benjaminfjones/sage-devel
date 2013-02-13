@@ -31,8 +31,8 @@ cd $TARGET
 
 # downloads sage-x.y.z.tar from the mirror network
 #
-aria2c --seed-time=0 -d $TARGET $META
-# wget $TAR # uncomment for direct http download
+#aria2c --seed-time=0 -d $TARGET $META
+wget $TAR # uncomment for direct http download
 
 # extracts sage
 echo "Download complete, now extracting Sage ..."
