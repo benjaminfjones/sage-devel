@@ -1,0 +1,33 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1362191062 28800
+# Node ID 494d3f3d58d6edc6013f964f9673a1513597ea78
+# Parent  e6535587ecfbd810e7dcdab9bb8598d176b0c6d0
+Trac 13102: reviewer_patch
+
+diff --git a/sage/groups/perm_gps/permgroup.py b/sage/groups/perm_gps/permgroup.py
+--- a/sage/groups/perm_gps/permgroup.py
++++ b/sage/groups/perm_gps/permgroup.py
+@@ -2538,17 +2538,17 @@
+ 
+         INPUT:
+ 
+-        - ``representative`` (boolean) -- whether to return all possible blocks
+-          systems imprimitivity or only one of their representatives (the block can
+-          be obtained by its representative set by `S` by computing the orbit of
+-          `S` under ``self``).
++        - ``representative`` (boolean) -- whether to return all possible block
++          systems of imprimitivity or only one of their representatives (the
++          block can be obtained from its representative set `S` by computing the
++          orbit of `S` under ``self``).
+ 
+           This parameter is set to ``True`` by default (as it is GAP's default
+           behaviour).
+ 
+         OUTPUT:
+ 
+-        This method returns a description of *all* blocks systems. Hence, the
++        This method returns a description of *all* block systems. Hence, the
+         output is a "list of lists of lists" or a "list of lists" depending on
+         the value of ``representatives``. A bit more clearly, output is :
+ 
