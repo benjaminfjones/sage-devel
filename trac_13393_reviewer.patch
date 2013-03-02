@@ -1,0 +1,19 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1357852303 28800
+# Node ID 3d5941b0de5e3930b319d03f062222182f35e035
+# Parent  ed6c0c5b686335f052476f88eaaa3e7358ee4ca0
+Trac 13393: reviewer patch changing deprecated use of x.normalize() to x.monic()
+
+diff --git a/sage/modules/finite_submodule_iter.pyx b/sage/modules/finite_submodule_iter.pyx
+--- a/sage/modules/finite_submodule_iter.pyx
++++ b/sage/modules/finite_submodule_iter.pyx
+@@ -311,7 +311,7 @@
+ 
+     Prove that the option ``normalize == True`` will only return normalized vectors.
+ 
+-        sage: all([ x.normalize() == x for x in FiniteFieldsubspace_projPoint_iterator(A, True) ])
++        sage: all([ x.monic() == x for x in FiniteFieldsubspace_projPoint_iterator(A, True) ])
+         True
+ 
+     TESTS::
