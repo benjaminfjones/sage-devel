@@ -1,0 +1,139 @@
+# HG changeset patch
+# User Benjamin Jones <benjaminfjones@gmail.com>
+# Date 1363112301 25200
+# Node ID b9f126470232053e5495c5d13a79090a1ff5c031
+# Parent  f26b58e961dad150e522859bc18b8ab3a139362b
+Trac 4102: fix doctests and tutorials involving Bessel function API
+
+diff --git a/doc/de/tutorial/tour_algebra.rst b/doc/de/tutorial/tour_algebra.rst
+--- a/doc/de/tutorial/tour_algebra.rst
++++ b/doc/de/tutorial/tour_algebra.rst
+@@ -402,12 +402,12 @@
+     sage: x = polygen(QQ, 'x')
+     sage: chebyshev_U(2,x)
+     4*x^2 - 1
+-    sage: bessel_I(1,1,"pari",250)
++    sage: bessel_I(1,1).n(250)
+     0.56515910399248502720769602760986330732889962162109200948029448947925564096
+-    sage: bessel_I(1,1)
++    sage: bessel_I(1,1).n()
+     0.565159103992485
+-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
+-    0.16708949925104899
++    sage: bessel_I(2,1.1).n()
++    0.167089499251049
+ 
+ Zum jetzigen Zeitpunkt, enthält Sage nur Wrapper-Funktionen für
+ numerische Berechnungen. Um symbolisch zu rechen, rufen Sie die
+diff --git a/doc/en/constructions/interface_issues.rst b/doc/en/constructions/interface_issues.rst
+--- a/doc/en/constructions/interface_issues.rst
++++ b/doc/en/constructions/interface_issues.rst
+@@ -511,14 +511,6 @@
+     sage: pari('2').besselk(3)
+     0.0615104584717420
+ 
+-The last command can also be executed using the command
+-
+-::
+-
+-    sage: bessel_K(3,2)
+-    0.647385390948634
+-    sage: bessel_K(3,2,prec=100)
+-    0.64738539094863415315923557097
+ 
+ What is Sage?
+ =============
+diff --git a/doc/en/tutorial/tour_algebra.rst b/doc/en/tutorial/tour_algebra.rst
+--- a/doc/en/tutorial/tour_algebra.rst
++++ b/doc/en/tutorial/tour_algebra.rst
+@@ -395,12 +395,12 @@
+     sage: x = polygen(QQ, 'x')
+     sage: chebyshev_U(2,x)
+     4*x^2 - 1
+-    sage: bessel_I(1,1,"pari",250)
++    sage: bessel_I(1,1).n(250)
+     0.56515910399248502720769602760986330732889962162109200948029448947925564096
+-    sage: bessel_I(1,1)
++    sage: bessel_I(1,1).n()
+     0.565159103992485
+-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
+-    0.16708949925104899
++    sage: bessel_I(2,1.1).n()
++    0.167089499251049
+ 
+ At this point, Sage has only wrapped these functions for numerical use.
+ For symbolic use, please use the Maxima interface directly, as in
+diff --git a/doc/fr/tutorial/tour_algebra.rst b/doc/fr/tutorial/tour_algebra.rst
+--- a/doc/fr/tutorial/tour_algebra.rst
++++ b/doc/fr/tutorial/tour_algebra.rst
+@@ -374,12 +374,12 @@
+     sage: x = polygen(QQ, 'x')
+     sage: chebyshev_U(2,x)
+     4*x^2 - 1
+-    sage: bessel_I(1,1,"pari",250)
++    sage: bessel_I(1,1).n(250)
+     0.56515910399248502720769602760986330732889962162109200948029448947925564096
+-    sage: bessel_I(1,1)
++    sage: bessel_I(1,1).n()
+     0.565159103992485
+-    sage: bessel_I(2,1.1,"maxima")  # les quelques derniers chiffres sont aléatoires
+-    0.167089499251049...
++    sage: bessel_I(2,1.1).n()
++    0.167089499251049
+ 
+ Pour l'instant, ces fonctions n'ont été adaptées à Sage que pour une
+ utilisation numérique. Pour faire du calcul formel, il faut utiliser
+diff --git a/doc/ru/tutorial/tour_algebra.rst b/doc/ru/tutorial/tour_algebra.rst
+--- a/doc/ru/tutorial/tour_algebra.rst
++++ b/doc/ru/tutorial/tour_algebra.rst
+@@ -372,11 +372,11 @@
+     sage: x = polygen(QQ, 'x')
+     sage: chebyshev_U(2,x)
+     4*x^2 - 1
+-    sage: bessel_I(1,1,"pari",250)
++    sage: bessel_I(1,1).n(250)
+     0.56515910399248502720769602760986330732889962162109200948029448947925564096
+-    sage: bessel_I(1,1)
++    sage: bessel_I(1,1).n()
+     0.565159103992485
+-    sage: bessel_I(2,1.1,"maxima")  # последние несколько цифр могут быть неточными
++    sage: bessel_I(2,1.1).n()
+     0.167089499251049
+ 
+ На данный момент Sage рассматривает данные функции только для численного 
+diff --git a/sage/calculus/desolvers.py b/sage/calculus/desolvers.py
+--- a/sage/calculus/desolvers.py
++++ b/sage/calculus/desolvers.py
+@@ -250,7 +250,7 @@
+     k2=0.::
+             
+         sage: desolve(x^2*diff(y,x,x)+x*diff(y,x)+(x^2-4)*y==0,y)
+-        k1*bessel_j(2, x) + k2*bessel_y(2, x)
++        k1*bessel_J(2, x) + k2*bessel_Y(2, x)
+     
+     Difficult ODE produces error::
+ 
+diff --git a/sage/calculus/wester.py b/sage/calculus/wester.py
+--- a/sage/calculus/wester.py
++++ b/sage/calculus/wester.py
+@@ -36,7 +36,7 @@
+ ::
+ 
+     sage: # (YES) Evaluate the Bessel function J[2] numerically at z=1+I.
+-    sage: bessel_J (2, 1+I)
++    sage: bessel_J(2, 1+I).n()
+     0.0415798869439621 + 0.247397641513306*I
+ 
+ ::
+diff --git a/sage/symbolic/random_tests.py b/sage/symbolic/random_tests.py
+--- a/sage/symbolic/random_tests.py
++++ b/sage/symbolic/random_tests.py
+@@ -232,7 +232,7 @@
+     EXAMPLES::
+ 
+         sage: from sage.symbolic.random_tests import *
+-        sage: set_random_seed(1)
++        sage: set_random_seed(53)
+         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
+         (v1^(0.97134084277 + 0.195868299334*I)/csc(-pi + v1^2 + v3) + sgn(1/
+         ((-v3 - 0.760455994772 - 0.554367254855*I)*erf(v3 + 0.982759757946 - 
