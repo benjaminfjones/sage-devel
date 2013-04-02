@@ -921,7 +921,7 @@ new file mode 100644
 +        sage: y = function('y', x)
 +        sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
 +        sage: f = desolve(diffeq, y, [1, 1, 1]); f
-+        (bessel_J(0, 1) + bessel_J(1, 1))*bessel_Y(0, x)/(bessel_Y(0, 1)*bessel_J(1, 1) - bessel_Y(1, 1)*bessel_J(0, 1)) - (bessel_Y(0, 1) + bessel_Y(1, 1))*bessel_J(0, x)/(bessel_Y(0, 1)*bessel_J(1, 1) - bessel_Y(1, 1)*bessel_J(0, 1))
++        (bessel_Y(0, 1) + bessel_Y(1, 1))*bessel_J(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1)) - (bessel_J(0, 1) + bessel_J(1, 1))*bessel_Y(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1))
 +
 +        sage: f.subs(x=1).n() # numerical verification
 +        1.00000000000000
