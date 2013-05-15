@@ -1,9 +1,9 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
-# Date 1364412253 25200
-# Node ID e9c0caf43434f06b4fd48b11fbfa7243a78d3f33
-# Parent  59616ddaef19d4c1975d4eacea72c842b475ad75
-Trac 4102: add deprecation of old API
+# Date 1364329830 25200
+# Node ID 96a1af7d1e564f27b78643e9df6db25a9f71d882
+# Parent  149031759a7a506afcefd7e0c97b8198d3a0b1b6
+Trac 4102: add deprecation warnings to old Bessel function API
 
 diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 --- a/sage/functions/bessel.py
@@ -42,11 +42,10 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
  
  
  class Function_Bessel_J(BuiltinFunction):
-@@ -283,6 +292,29 @@
+@@ -283,6 +292,27 @@
                                   conversions=dict(maxima='bessel_j',
                                                    mathematica='BesselJ'))
  
-+    # remove after deprecation period
 +    def __call__(self, *args, **kwds):
 +        """
 +        Custom `__call__` method which uses the old Bessel function code if the
@@ -56,23 +55,22 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 +        EXAMPLES::
 +
 +            sage: bessel_J(0, 1.0, "maxima", 53)
-+            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
++            doctest:...: DeprecationWarning: algorithm and precision arguments
++            are deprecated
 +            See http://trac.sagemath.org/4102 for details.
 +            0.765197686558
 +        """
 +        if len(args) > 2 or len(kwds) > 0:
 +            from sage.misc.superseded import deprecation
-+            deprecation(4102, 'precision argument is deprecated; algorithm '
-+                              'argument is currently deprecated, but will be '
-+                              'available as a named keyword in the future')
++            deprecation(4102, 'algorithm and precision arguments are deprecated')
 +            return _bessel_J(*args, **kwds)
 +        else:
-+            return super(BuiltinFunction, self).__call__(*args, **kwds)
++            return super(Function_Bessel_J, self).__call__(*args, **kwds)
 +
      def _eval_(self, n, x):
          """
          EXAMPLES::
-@@ -296,7 +328,7 @@
+@@ -296,7 +326,7 @@
          if (not isinstance(n, Expression) and
                  not isinstance(x, Expression) and
                  (is_inexact(n) or is_inexact(x))):
@@ -81,11 +79,10 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
              n, x = coercion_model.canonical_coercion(n, x)
              return self._evalf_(n, x, parent(n))
  
-@@ -420,6 +452,29 @@
+@@ -420,6 +450,27 @@
                                   conversions=dict(maxima='bessel_y',
                                                    mathematica='BesselY'))
  
-+    # remove after deprecation period
 +    def __call__(self, *args, **kwds):
 +        """
 +        Custom `__call__` method which uses the old Bessel function code if the
@@ -95,23 +92,22 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 +        EXAMPLES::
 +
 +            sage: bessel_Y(0, 1, "maxima", 53)
-+            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
++            doctest:...: DeprecationWarning: algorithm and precision arguments
++            are deprecated
 +            See http://trac.sagemath.org/4102 for details.
 +            0.0882569642156769
 +        """
 +        if len(args) > 2 or len(kwds) > 0:
 +            from sage.misc.superseded import deprecation
-+            deprecation(4102, 'precision argument is deprecated; algorithm '
-+                              'argument is currently deprecated, but will be '
-+                              'available as a named keyword in the future')
++            deprecation(4102, 'algorithm and precision arguments are deprecated')
 +            return _bessel_Y(*args, **kwds)
 +        else:
-+            return super(BuiltinFunction, self).__call__(*args, **kwds)
++            return super(Function_Bessel_Y, self).__call__(*args, **kwds)
 +
      def _eval_(self, n, x):
          """
          EXAMPLES::
-@@ -432,7 +487,7 @@
+@@ -432,7 +483,7 @@
          """
          if (not isinstance(n, Expression) and not isinstance(x, Expression) and
                  (is_inexact(n) or is_inexact(x))):
@@ -120,11 +116,10 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
              n, x = coercion_model.canonical_coercion(n, x)
              return self._evalf_(n, x, parent(n))
  
-@@ -560,6 +615,29 @@
+@@ -560,6 +611,27 @@
                                   conversions=dict(maxima='bessel_i',
                                                    mathematica='BesselI'))
  
-+    # remove after deprecation period
 +    def __call__(self, *args, **kwds):
 +        """
 +        Custom `__call__` method which uses the old Bessel function code if the
@@ -134,23 +129,22 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 +        EXAMPLES::
 +
 +            sage: bessel_I(0, 1, "maxima", 53)
-+            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
++            doctest:...: DeprecationWarning: algorithm and precision arguments
++            are deprecated
 +            See http://trac.sagemath.org/4102 for details.
 +            1.266065877752009
 +        """
 +        if len(args) > 2 or len(kwds) > 0:
 +            from sage.misc.superseded import deprecation
-+            deprecation(4102, 'precision argument is deprecated; algorithm '
-+                              'argument is currently deprecated, but will be '
-+                              'available as a named keyword in the future')
++            deprecation(4102, 'algorithm and precision arguments are deprecated')
 +            return _bessel_I(*args, **kwds)
 +        else:
-+            return super(BuiltinFunction, self).__call__(*args, **kwds)
++            return super(Function_Bessel_I, self).__call__(*args, **kwds)
 +
      def _eval_(self, n, x):
          """
          EXAMPLES::
-@@ -576,7 +654,7 @@
+@@ -576,7 +648,7 @@
          """
          if (not isinstance(n, Expression) and not isinstance(x, Expression) and
                  (is_inexact(n) or is_inexact(x))):
@@ -159,11 +153,10 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
              n, x = coercion_model.canonical_coercion(n, x)
              return self._evalf_(n, x, parent(n))
  
-@@ -725,6 +803,29 @@
+@@ -725,6 +797,26 @@
                                   conversions=dict(maxima='bessel_k',
                                                    mathematica='BesselK'))
  
-+    # remove after deprecation period
 +    def __call__(self, *args, **kwds):
 +        """
 +        Custom `__call__` method which uses the old Bessel function code if the
@@ -172,24 +165,22 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
 +
 +        EXAMPLES::
 +
-+            sage: bessel_K(0, 1, "maxima", 53)
-+            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
++            sage: bessel_K(0, 1, "scipy", 53)
++            doctest:1: DeprecationWarning: algorithm and precision arguments are deprecated
 +            See http://trac.sagemath.org/4102 for details.
-+            0.0882569642156769
++            0.421024438241000
 +        """
 +        if len(args) > 2 or len(kwds) > 0:
 +            from sage.misc.superseded import deprecation
-+            deprecation(4102, 'precision argument is deprecated; algorithm '
-+                              'argument is currently deprecated, but will be '
-+                              'available as a named keyword in the future')
-+            return _bessel_Y(*args, **kwds)
++            deprecation(4102, 'algorithm and precision arguments are deprecated')
++            return _bessel_K(*args, **kwds)
 +        else:
-+            return super(BuiltinFunction, self).__call__(*args, **kwds)
++            return super(Function_Bessel_K, self).__call__(*args, **kwds)
 +
      def _eval_(self, n, x):
          """
          EXAMPLES::
-@@ -738,7 +839,7 @@
+@@ -738,7 +830,7 @@
          """
          if (not isinstance(n, Expression) and not isinstance(x, Expression) and
                  (is_inexact(n) or is_inexact(x))):
@@ -198,29 +189,40 @@ diff --git a/sage/functions/bessel.py b/sage/functions/bessel.py
              n, x = coercion_model.canonical_coercion(n, x)
              return self._evalf_(n, x, parent(n))
  
-@@ -925,8 +1026,12 @@
+@@ -925,8 +1017,10 @@
          _type = args[1]
          _nargs = 1
      else:
 -        raise TypeError("at most two positional arguments may be specified, "
 -                        + "see the docstring for Bessel")
 +        from sage.misc.superseded import deprecation
-+        deprecation(4102, 'precision argument is deprecated; algorithm '
-+                          'argument is currently deprecated, but will be '
-+                          'available as a named keyword in the future')
++        deprecation(4102, 'algorithm and precision arguments are deprecated')
 +        return _Bessel(*args, **kwds)
 +
      # check for type inconsistency
      if _type is not None and 'typ' in kwds and _type != kwds['typ']:
          raise ValueError("inconsistent types given")
-@@ -957,3 +1062,574 @@
+@@ -944,16 +1038,579 @@
+     else:
+         _system = 'mpmath'
+ 
+-    # return the function
+-    # TODO remove assertions
+-    assert _type in ['I', 'J', 'K', 'Y']
+-    assert _order is None or _order in RR
+-    assert _nargs == 1 or _nargs == 2
+-    assert _system == 'mpmath'
+-
+-    # TODO what to do with _system?
+     _f = bessel_type_dict[_type]
+     if _nargs == 1:
          return lambda x: _f(_order, x)
      else:
          return _f
 +
-+####################################################
-+###  to be removed after the deprecation period  ###
-+####################################################
++####################################################################
++###  code below here to be removed after the deprecation period  ###
++####################################################################
 +
 +
 +def _bessel_I(nu,z,algorithm = "pari",prec=53):
