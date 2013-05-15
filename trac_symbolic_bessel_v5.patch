@@ -1,8 +1,8 @@
 # HG changeset patch
 # User Benjamin Jones <benjaminfjones@gmail.com>
 # Date 1363120860 25200
-# Node ID 6f7a34bb17199329c2c1d24f6629a86a55aada4e
-# Parent  46dbc7df9ee84eb668165896de3e0d9ce246919e
+# Node ID de8bed11ee7965156e33ede0bf31ad9c7b797335
+# Parent  4381a8e9f0c8d5d481433f3e670c8de9ddeadc4f
 Trac 4102: Implement symbolic Bessel functions
 
 diff --git a/doc/en/reference/functions/index.rst b/doc/en/reference/functions/index.rst
@@ -114,8 +114,8 @@ new file mode 100644
 +
 +   .. math::
 +
-+       \frac{d}{dx} J_n(x) = \frac{1}{x^n} \left\(x^n J_{n-1}(x) - n x^{n-1}
-+       J_n(z) \right\)
++       \frac{d}{dx} J_n(x) = \frac{1}{x^n} \left(x^n J_{n-1}(x) - n x^{n-1}
++       J_n(z) \right)
 +
 +-  Another important formulation of the two linearly independent
 +   solutions to Bessel's equation are the Hankel functions
@@ -407,8 +407,8 @@ new file mode 100644
 +
 +    .. math::
 +
-+        \frac{d}{dz} Y_n(z) = \frac{1}{z^n} \left\(z^n Y_{n-1}(z) - n z^{n-1}
-+        Y_n(z) \right\)
++        \frac{d}{dz} Y_n(z) = \frac{1}{z^n} \left(z^n Y_{n-1}(z) - n z^{n-1}
++        Y_n(z) \right)
 +
 +    EXAMPLES::
 +
